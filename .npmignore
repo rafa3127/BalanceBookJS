@@ -1,0 +1,8 @@
+/node_modules
+/src
+/.github
+webpack.config.cjs
+.releaserc.json
+CHANGELOG.md
+CONTRIBUITING.md
+*.tgz

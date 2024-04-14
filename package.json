@@ -1,0 +1,34 @@
+{
+  "name": "balance-book-js",
+  "version": "0.1.0",
+  "description": "BalanceBookJS is a JavaScript library that provides an object-oriented approach based on fundamental accounting principles.",
+  "main": "lib/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"No test specified\" && exit 0",
+    "npm-publish": "npm run build && npm pack && npm publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rafa3127/BalanceBookJS.git"
+  },
+  "keywords": [
+    "accounting"
+  ],
+  "author": "Rafael Correa",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rafa3127/BalanceBookJS/issues"
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./lib/": "./lib/"
+  },
+  "homepage": "https://github.com/rafa3127/BalanceBookJS#readme",
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "semantic-release": "^23.0.8"
+  }
+}
