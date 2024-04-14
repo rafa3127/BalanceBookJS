@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/rafa3127/BalanceBookJS/compare/v1.0.0...v1.1.0) (2024-04-14)
+
+
+### Features
+
+* **versions:** added webpack compilation ([15a100d](https://github.com/rafa3127/BalanceBookJS/commit/15a100d628cc430f2067538002c9c977f63607dd))
+
 # 1.0.0 (2024-04-14)
 
 
