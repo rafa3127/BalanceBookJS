@@ -1,19 +1,6 @@
 # Contributing to BalanceBookJS
 
-We appreciate your interest in contributing to BalanceBookJS! To maintain the quality of our codebase and ensure consistent releases, we adhere to specific commit message conventions. This document outlines how to format your commit messages to comply with our workflow.
-
-## Commit Message Format
-
-Each commit message should include a header, a body, and a footer. The header has a special format that includes a type, a scope, and a subject:
-
-
-Para asegurar que todos los contribuyentes a tu repositorio sigan una convención de commits coherente y que Semantic Release pueda automatizar el proceso de versionado y lanzamiento, es fundamental proporcionar una guía clara sobre cómo se deben hacer los commits. Aquí te proporciono una documentación en formato Markdown que puedes incluir en un archivo CONTRIBUTING.md o README.md en tu repositorio:
-
-markdown
-Copy code
-# Contributing to BalanceBookJS
-
-We appreciate your interest in contributing to BalanceBookJS! To maintain the quality of our codebase and ensure consistent releases, we adhere to specific commit message conventions. This document outlines how to format your commit messages to comply with our workflow.
+We appreciate your interest in contributing to BalanceBookJS! To maintain the quality of our codebase and ensure consistent releases, we adhere to specific commit message conventions based on Conventional Commits. This document outlines how to format your commit messages to comply with our workflow, which helps automate versioning and changelog generation.
 
 ## Commit Message Format
 
