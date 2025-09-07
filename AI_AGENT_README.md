@@ -2,7 +2,7 @@
 
 ## Quick Start for AI Assistants
 
-Welcome! You are working on **BalanceBookJS**, a JavaScript library implementing double-entry bookkeeping principles. This guide will help you navigate the project and understand where to find the information you need.
+Welcome! You are working on **BalanceBookJS**, a TypeScript/JavaScript library implementing double-entry bookkeeping principles. This guide will help you navigate the project and understand where to find the information you need.
 
 ## 📍 Navigation Map
 
@@ -19,11 +19,15 @@ Welcome! You are working on **BalanceBookJS**, a JavaScript library implementing
 ### 2️⃣ **Source Code**
 ```
 📁 /src/
-├── 📄 index.js                      # Main exports
+├── 📄 index.ts                     # Main exports
 ├── 📁 classes/
 │   ├── 📁 accounts/                 # Account classes (Account, Asset, Liability, etc.)
 │   └── 📁 transactions/             # Transaction classes (JournalEntry)
-└── 📄 Constants.js                  # Project constants
+├── 📁 types/                        # TypeScript type definitions
+│   ├── 📄 account.types.ts         # Account interfaces
+│   ├── 📄 transaction.types.ts     # Transaction interfaces
+│   └── 📄 index.ts                 # Type exports
+└── 📄 Constants.ts                 # Project constants and enums
 ```
 
 ### 3️⃣ **Improvements & Features**
@@ -31,28 +35,33 @@ Welcome! You are working on **BalanceBookJS**, a JavaScript library implementing
 📁 /docs/ai-context/
 ├── 📁 improvements/                 # Fully documented improvements
 │   ├── 📄 _template.md             # Template for new improvements
-│   ├── 📄 001-typescript-migration.md
+│   ├── 📄 001-typescript-migration.md ✅ COMPLETED
 │   ├── 📄 002-money-value-object.md
 │   ├── 📄 003-general-ledger.md
 │   ├── 📄 004-financial-reports.md
 │   ├── 📄 005-multi-currency.md
 │   ├── 📄 006-accounting-periods.md
 │   └── 📄 007-validation-business-rules.md
-├── 📁 completed/                    # Completed improvements (currently empty)
+├── 📁 completed/                    # Completed improvements
 └── 📄 improvement-ideas-backlog.md # 100+ undeveloped ideas
 ```
 
 ### 4️⃣ **Project Configuration**
 ```
 📄 package.json                      # Dependencies and scripts
+📄 tsconfig.json                     # TypeScript configuration
+📄 tsconfig.cjs.json                # TypeScript config for CommonJS build
 📄 README.md                         # User-facing documentation
-📄 CONTRIBUTING.md                  # Contributing guidelines (note the typo!)
+📄 CONTRIBUTING.md                  # Contributing guidelines
 📄 LICENSE                           # ISC License
 ```
 
 ### 5️⃣ **Tests**
 ```
-📁 /tests/                           # Test files
+📁 /tests/                           # Test files (TypeScript)
+├── 📄 Account.test.ts              # Account class tests
+├── 📄 AccountSubclasses.test.ts   # Asset, Liability, etc. tests
+└── 📄 JournalEntry.test.ts        # JournalEntry tests
 ```
 
 ## 🎯 Common Tasks & Where to Go
@@ -68,9 +77,10 @@ Welcome! You are working on **BalanceBookJS**, a JavaScript library implementing
 3. Use `/docs/ai-context/improvements/_template.md` to create new specs
 
 ### "I need to understand the current code"
-1. Start with `/src/index.js` for exports
-2. Review `/src/classes/accounts/Account.js` for base logic
-3. Review `/src/classes/transactions/JournalEntry.js` for transactions
+1. Start with `/src/index.ts` for exports
+2. Review `/src/types/` for TypeScript interfaces
+3. Review `/src/classes/accounts/Account.ts` for base logic
+4. Review `/src/classes/transactions/JournalEntry.ts` for transactions
 
 ### "I need to create a Pull Request"
 1. Read `/CONTRIBUTING.md` for commit conventions
@@ -82,19 +92,21 @@ Welcome! You are working on **BalanceBookJS**, a JavaScript library implementing
 ### Key Design Principles
 - **Double-Entry Bookkeeping**: Every transaction must balance (debits = credits)
 - **Object-Oriented**: Clear class hierarchy with inheritance
-- **No External Dependencies**: Keep the library lightweight
-- **ES Modules**: Using modern JavaScript module system
+- **No External Dependencies**: Keep the library lightweight (only dev dependencies)
+- **Type Safety**: Full TypeScript with strict mode enabled
+- **Dual Module Support**: ES Modules and CommonJS compatibility
 
 ### Account Types & Behavior
 - **Assets & Expenses**: Debit increases, Credit decreases (`isDebitPositive = true`)
 - **Liabilities, Equity & Income**: Credit increases, Debit decreases (`isDebitPositive = false`)
 
 ### Current Technical Stack
-- **Language**: JavaScript (ES6+)
-- **Testing**: Jest
-- **Build**: Webpack with Babel
-- **Module Type**: ES Modules
+- **Language**: TypeScript (compiles to JavaScript)
+- **Testing**: Jest with ts-jest
+- **Build**: Pure TypeScript compilation (no bundlers)
+- **Module Types**: ES Modules + CommonJS (dual build)
 - **Node**: LTS (>= 18.x)
+- **Type Checking**: Strict mode enabled
 
 ## 🚀 Quick Command Reference
 
@@ -105,11 +117,14 @@ npm install
 # Run tests
 npm test
 
-# Build library
+# Build library (ES Modules + CommonJS)
 npm run build
 
-# Start development
-npm start
+# Type check without building
+npm run type-check
+
+# Watch mode for development
+npm run watch
 ```
 
 ## 📋 Working with Improvements
@@ -132,6 +147,8 @@ npm start
 1. **Always validate**: The library enforces double-entry principles
 2. **Maintain compatibility**: Don't break existing API without documentation
 3. **Ask questions**: When developing improvements, always ask for requirements first
+4. **Type Safety**: All new code must be properly typed (no `any` unless absolutely necessary)
+5. **Negative Amounts**: Currently prohibited - all amounts must be positive
 
 ## 🔄 Session Initialization Prompt
 
@@ -158,6 +175,16 @@ This project uses **prompt-oriented documentation**:
 3. **Follow patterns**: Maintain consistency with existing code
 4. **Document thoroughly**: Future AI agents will read your work
 5. **Test everything**: Include comprehensive test cases
+
+## 🎉 Recent Updates
+
+### TypeScript Migration (January 2025)
+- ✅ Entire codebase migrated to TypeScript
+- ✅ Dual build system (ES Modules + CommonJS)
+- ✅ Full type definitions for all public APIs
+- ✅ Strict mode enabled for maximum type safety
+- ✅ All tests migrated and passing
+- ❌ Webpack and Babel removed (simpler build)
 
 ---
 
