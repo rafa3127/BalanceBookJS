@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/rafa3127/BalanceBookJS/compare/v1.2.0...v1.3.0) (2025-09-07)
+
+
+### Features
+
+* **typescript:** complete migration to TypeScript with dual module support ([6b741b8](https://github.com/rafa3127/BalanceBookJS/commit/6b741b8038cb0d68157dc76e2e6d803db9479066))
+
 ## [1.2.0](https://github.com/rafa3127/BalanceBookJS/compare/v1.1.0...v1.2.0) (2025-05-14)
 
 
