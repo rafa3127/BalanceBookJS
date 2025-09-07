@@ -46,7 +46,7 @@ Welcome! You are working on **BalanceBookJS**, a JavaScript library implementing
 ```
 📄 package.json                      # Dependencies and scripts
 📄 README.md                         # User-facing documentation
-📄 CONTRIBUITING.md                  # Contributing guidelines (note the typo!)
+📄 CONTRIBUTING.md                  # Contributing guidelines (note the typo!)
 📄 LICENSE                           # ISC License
 ```
 
@@ -73,7 +73,7 @@ Welcome! You are working on **BalanceBookJS**, a JavaScript library implementing
 3. Review `/src/classes/transactions/JournalEntry.js` for transactions
 
 ### "I need to create a Pull Request"
-1. Read `/CONTRIBUITING.md` for commit conventions
+1. Read `/CONTRIBUTING.md` for commit conventions
 2. Follow Conventional Commits format: `type(scope): description`
 3. Types: feat, fix, docs, style, refactor, perf, test, chore
 
@@ -129,10 +129,9 @@ npm start
 
 ## ⚠️ Critical Notes
 
-1. **File name typo**: Contributing file is `CONTRIBUITING.md` (not CONTRIBUTING.md)
-2. **Always validate**: The library enforces double-entry principles
-3. **Maintain compatibility**: Don't break existing API without documentation
-4. **Ask questions**: When developing improvements, always ask for requirements first
+1. **Always validate**: The library enforces double-entry principles
+2. **Maintain compatibility**: Don't break existing API without documentation
+3. **Ask questions**: When developing improvements, always ask for requirements first
 
 ## 🔄 Session Initialization Prompt
 

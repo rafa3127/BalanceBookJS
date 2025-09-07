@@ -4,5 +4,5 @@
 webpack.config.cjs
 .releaserc.json
 CHANGELOG.md
-CONTRIBUITING.md
+CONTRIBUTING.md
 *.tgz

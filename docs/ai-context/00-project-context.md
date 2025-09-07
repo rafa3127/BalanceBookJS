@@ -6,7 +6,7 @@ You are working on BalanceBookJS, a JavaScript library implementing double-entry
 ## 📚 Essential Reading Order
 1. **This file** (00-project-context.md)
 2. **Project README**: `/README.md`
-3. **Contributing Guidelines**: `/CONTRIBUITING.md` (note the typo in filename)
+3. **Contributing Guidelines**: `/CONTRIBUTING.md`
 4. **Architecture Overview**: `/docs/ai-context/01-architecture-overview.md`
 
 ## 🏗️ Project Structure Overview
@@ -99,9 +99,8 @@ Key concepts the AI should understand:
 ## ⚠️ Important Notes
 1. The library uses `isDebitPositive` flag to determine account behavior
 2. All monetary amounts are currently handled as JavaScript numbers (potential precision issues)
-3. The CONTRIBUTING file has a typo: `CONTRIBUITING.md` (not CONTRIBUTING.md)
-4. When creating PRs, ensure commits follow the conventional format
-5. The project is on GitHub at: `rafa3127/BalanceBookJS`
+3. When creating PRs, ensure commits follow the conventional format
+4. The project is on GitHub at: `rafa3127/BalanceBookJS`
 
 ## 🎯 Current Project Goals
 1. Maintain backwards compatibility with existing API
