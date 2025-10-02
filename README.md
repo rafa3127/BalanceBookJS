@@ -8,12 +8,15 @@ BalanceBookJS is a TypeScript/JavaScript library that provides an object-oriente
 
 * Object-Oriented implementation of core accounting concepts: Accounts and Journal Entries.
 * Specialized classes for common account types: `Asset`, `Liability`, `Equity`, `Income`, and `Expense`.
+* **Precise monetary calculations** with the Money value object - no floating-point errors.
+* **Multi-currency support** with automatic currency validation.
 * Automatic balance calculation based on debit and credit entries.
 * Enforces double-entry bookkeeping principles in Journal Entries (debits must equal credits).
 * **Full TypeScript support** with comprehensive type definitions.
 * **Dual module system**: Works with both ES Modules and CommonJS.
 * Written in TypeScript, compiled to JavaScript for maximum compatibility.
 * Lightweight with zero runtime dependencies.
+* **Backward compatible** - works with both numbers and Money objects.
 
 ## Prerequisites
 
@@ -43,12 +46,18 @@ yarn add balance-book-js
 
 ```javascript
 import { Asset, Liability, Equity, Income, Expense, JournalEntry } from 'balance-book-js';
+
+// For precise monetary calculations
+import { Money, MoneyUtils, createCurrency } from 'balance-book-js';
 ```
 
 #### CommonJS (Node.js)
 
 ```javascript
 const { Asset, Liability, Equity, Income, Expense, JournalEntry } = require('balance-book-js');
+
+// For precise monetary calculations
+const { Money, MoneyUtils, createCurrency } = require('balance-book-js');
 ```
 
 #### TypeScript
@@ -59,14 +68,19 @@ TypeScript users get full type support automatically:
 import { 
   Asset, 
   JournalEntry,
+  Money,
   IAccount,           // Interface for accounts
   IJournalEntry,       // Interface for journal entries
+  IMoney,             // Interface for money objects
   EntryType,          // Type for 'debit' | 'credit'
   AccountType         // Enum for account types
 } from 'balance-book-js';
 
 const cash: Asset = new Asset('Cash', 1000);
 const entry: IJournalEntry = new JournalEntry('Test transaction');
+
+// With Money for precision
+const usdCash: Asset = new Asset('USD Cash', new Money(1000, 'USD'));
 ```
 
 ## Core Classes (API)
@@ -78,23 +92,24 @@ The `Account` class is the foundational class in BalanceBookJS representing a ge
 **Constructor:**
 
 ```javascript
-new Account(name, initialBalance = 0, isDebitPositive)
+new Account(name, initialBalance = 0, isDebitPositive, defaultCurrency = 'CURR')
 ```
 
 * `name` (string): The name of the account (e.g., "Cash", "Accounts Payable").
-* `initialBalance` (number, optional): The starting balance of the account. Defaults to 0.
+* `initialBalance` (number | Money, optional): The starting balance. Can be a number or Money object. Defaults to 0.
 * `isDebitPositive` (boolean): Determines how debits and credits affect the balance.
+* `defaultCurrency` (string, optional): Default currency for number mode. Defaults to 'CURR' (generic currency).
     * Set to `true` if debits increase the balance and credits decrease it (typical for Assets and Expenses).
     * Set to `false` if debits decrease the balance and credits increase it (typical for Liabilities, Equity, and Income).
 
 **Methods:**
 
 * **`debit(amount)`**: Records a debit entry to the account.
-    * `amount` (number): The amount to debit. Must be positive.
+    * `amount` (number | Money): The amount to debit. Must be positive.
 * **`credit(amount)`**: Records a credit entry to the account.
-    * `amount` (number): The amount to credit. Must be positive.
+    * `amount` (number | Money): The amount to credit. Must be positive.
 * **`getBalance()`**: Returns the current balance of the account.
-    * *Returns:* `number` - The current balance.
+    * *Returns:* `number | Money` - Returns the same type as initialized (number or Money).
 
 **Example:**
 
@@ -194,6 +209,133 @@ new JournalEntry(description, date = new Date())
 * **`isCommitted()`**: Checks if the journal entry has been committed.
     * *Returns:* `boolean` - True if committed, false otherwise.
 
+### `Money` (Value Object)
+
+The `Money` class provides precise monetary calculations without floating-point errors, using BigInt internally.
+
+**Constructor:**
+
+```javascript
+new Money(amount, currency = 'USD', options)
+```
+
+* `amount` (number | string): The monetary amount.
+* `currency` (string, optional): Currency code (ISO 4217). Defaults to 'USD'.
+* `options` (object, optional): Configuration options.
+    * `minInternalScale` (number): Minimum internal precision. Defaults to 6.
+    * `forceScale` (number): Force specific scale.
+
+**Key Methods:**
+
+* **Arithmetic**: `add()`, `subtract()`, `multiply()`, `divide()`, `negate()`
+* **Comparison**: `equals()`, `isGreaterThan()`, `isLessThan()`, `isZero()`, `isPositive()`, `isNegative()`
+* **Conversion**: `toNumber()`, `toString()`, `format()`, `toJSON()`
+* **Factory Methods**: `Money.zero()`, `Money.fromCents()`, `Money.fromAmount()`
+
+**Example:**
+
+```javascript
+import { Money } from 'balance-book-js';
+
+// Precise calculations - no floating-point errors
+const price = new Money(99.99, 'USD');
+const tax = price.multiply(0.08); // 8% tax
+const total = price.add(tax);
+
+console.log(total.toNumber()); // 107.99 (exact, not 107.98999999999999)
+console.log(total.format());   // "$107.99"
+
+// Currency validation
+const usdAmount = new Money(100, 'USD');
+const eurAmount = new Money(100, 'EUR');
+// usdAmount.add(eurAmount); // Throws: Currency mismatch
+```
+
+### `MoneyUtils` (Utility Class)
+
+Provides utility functions for working with Money objects.
+
+**Key Methods:**
+
+* **`sum(moneys)`**: Sum an array of Money objects
+* **`average(moneys)`**: Calculate average
+* **`min/max(moneys)`**: Find minimum/maximum
+* **`distribute(money, n)`**: Distribute amount evenly (handles remainders)
+* **`percentage(money, percent)`**: Calculate percentage
+* **`calculateTax(money, rate)`**: Calculate tax amount
+* **`applyDiscount(money, discount)`**: Apply discount percentage
+
+**Example:**
+
+```javascript
+import { Money, MoneyUtils } from 'balance-book-js';
+
+// Distribute $100 among 3 people
+const total = new Money(100, 'USD');
+const shares = MoneyUtils.distribute(total, 3);
+// Result: [$33.34, $33.33, $33.33] - no cents lost!
+
+// Calculate 15% tip
+const bill = new Money(85.50, 'USD');
+const tip = MoneyUtils.percentage(bill, 15);
+console.log(tip.format()); // "$12.83"
+```
+
+### `createCurrency` (Factory Function)
+
+Create custom currency classes and factory functions for convenience.
+
+**Example:**
+
+```javascript
+import { createCurrency } from 'balance-book-js';
+
+// Create USD currency class and factory
+const { USD, usd } = createCurrency('USD');
+
+// Use the class
+const payment = new USD(100);  // Same as new Money(100, 'USD')
+
+// Use the factory function
+const refund = usd(50);        // Same as new Money(50, 'USD')
+
+// They work together
+const balance = payment.subtract(refund);
+console.log(balance.format()); // "$50.00"
+```
+
+### Supported Currencies
+
+The library includes built-in support for major currencies:
+
+* **USD** - US Dollar (2 decimals)
+* **EUR** - Euro (2 decimals)
+* **GBP** - British Pound (2 decimals)
+* **JPY** - Japanese Yen (0 decimals)
+* **CAD** - Canadian Dollar (2 decimals)
+* **AUD** - Australian Dollar (2 decimals)
+* **CHF** - Swiss Franc (2 decimals)
+* **CNY** - Chinese Yuan (2 decimals)
+* **MXN** - Mexican Peso (2 decimals)
+* **CURR** - Generic Currency (2 decimals, default for backward compatibility)
+
+You can also register custom currencies:
+
+```javascript
+import { Money, registerCurrencyConfig } from 'balance-book-js';
+
+// Register Bitcoin with 8 decimal places
+registerCurrencyConfig('BTC', {
+  code: 'BTC',
+  symbol: '₿',
+  name: 'Bitcoin',
+  decimals: 8
+});
+
+const bitcoin = new Money(0.00001234, 'BTC');
+console.log(bitcoin.format()); // "₿0.00001234"
+```
+
 **Example (`JournalEntry`):**
 
 ```javascript
@@ -229,6 +371,111 @@ Expected output might look like:
   { accountName: 'Cash on Hand', amount: 750, type: 'credit', date: ..., description: 'Paid monthly office rent - May 2025'}
 ]
 */
+```
+
+## Working with Money and Accounts
+
+> 💡 **Note**: The Money value object is completely optional and backward compatible. Existing code continues to work without any changes. For gradual adoption strategies, see the [Adoption Guide](docs/migration_guides/002_MONEY_OBJECTS_ADOPTION_GUIDES.md).
+
+### Backward Compatible Mode
+
+Accounts work seamlessly with both numbers (for backward compatibility) and Money objects (for precision):
+
+```javascript
+import { Asset, Money } from 'balance-book-js';
+
+// Traditional mode with numbers (backward compatible)
+const cashAccount = new Asset('Cash', 1000);
+cashAccount.debit(500);
+console.log(cashAccount.getBalance()); // 1500 (returns number)
+
+// Money mode for precision
+const usdAccount = new Asset('USD Cash', new Money(1000, 'USD'));
+usdAccount.debit(new Money(500, 'USD'));
+const balance = usdAccount.getBalance(); // Returns Money object
+console.log(balance.format()); // "$1,500.00"
+
+// Currency validation prevents errors
+const eurMoney = new Money(100, 'EUR');
+// usdAccount.debit(eurMoney); // Throws: Currency mismatch
+```
+
+### Journal Entries with Money
+
+```javascript
+import { Asset, Expense, JournalEntry, Money } from 'balance-book-js';
+
+// Create accounts with Money for precision
+const cash = new Asset('Cash', new Money(5000, 'USD'));
+const rent = new Expense('Rent', new Money(0, 'USD'));
+
+// Create journal entry
+const entry = new JournalEntry('Monthly rent payment');
+
+// Add entries with Money objects
+entry.addEntry(rent, new Money(1500, 'USD'), 'debit');
+entry.addEntry(cash, new Money(1500, 'USD'), 'credit');
+
+// Commit the transaction
+entry.commit();
+
+// Check balances (returns Money objects)
+console.log(cash.getBalance().format());    // "$3,500.00"
+console.log(rent.getBalance().format());    // "$1,500.00"
+```
+
+### Solving Floating-Point Problems
+
+```javascript
+import { Asset, Money } from 'balance-book-js';
+
+// JavaScript floating-point problem
+console.log(0.1 + 0.2); // 0.30000000000000004 ❌
+
+// Solution with Money
+const account = new Asset('Savings', new Money(0, 'USD'));
+
+// Add 1000 transactions of $0.001 each
+for (let i = 0; i < 1000; i++) {
+  account.credit(new Money(0.001, 'USD'));
+}
+
+// Perfect precision maintained
+const balance = account.getBalance();
+console.log(balance.toNumber()); // 1.00 (exact) ✅
+console.log(balance.format());   // "$1.00"
+```
+
+### Advanced Example: Multi-Currency Accounting
+
+```javascript
+import { Asset, Income, JournalEntry, Money, createCurrency } from 'balance-book-js';
+
+// Create currency-specific factories
+const { USD, usd } = createCurrency('USD');
+const { EUR, eur } = createCurrency('EUR');
+
+// Separate accounts for each currency
+const usdBank = new Asset('USD Bank', usd(10000));
+const eurBank = new Asset('EUR Bank', eur(5000));
+const usdRevenue = new Income('USD Sales', usd(0));
+const eurRevenue = new Income('EUR Sales', eur(0));
+
+// USD transaction
+const usdSale = new JournalEntry('US Customer Sale');
+usdSale.addEntry(usdBank, usd(1500), 'debit');
+usdSale.addEntry(usdRevenue, usd(1500), 'credit');
+usdSale.commit();
+
+// EUR transaction
+const eurSale = new JournalEntry('EU Customer Sale');
+eurSale.addEntry(eurBank, eur(800), 'debit');
+eurSale.addEntry(eurRevenue, eur(800), 'credit');
+eurSale.commit();
+
+// Check balances - each maintains its currency
+console.log(usdBank.getBalance().format());    // "$11,500.00"
+console.log(eurBank.getBalance().format());    // "€5,800.00"
 ```
 
 ## TypeScript Example
@@ -290,15 +537,31 @@ processTransaction(loanEntry);
   - The amount is negative
   - The type is not 'debit' or 'credit'
   - The journal entry has already been committed
-* Account `debit()` and `credit()` methods will throw an `Error` if the amount is negative
+* Account `debit()` and `credit()` methods will throw an `Error` if:
+  - The amount is negative
+  - Currency mismatch when using Money objects
+* Money arithmetic operations will throw an `Error` if:
+  - Currencies don't match in add/subtract operations
+  - Division by zero
+  - Amount exceeds safe value limits for the precision level
 
 It's recommended to wrap calls to `.commit()` in a `try...catch` block.
 
 ## Version
 
-Current version: 1.2.0
+Current version: 1.3.0
 
-### What's New in v1.2.0
+### What's New in v1.3.0
+- **Money Value Object**: Precise monetary calculations without floating-point errors
+- **Multi-currency support**: Automatic currency validation and conversion prevention
+- **MoneyUtils**: Utility functions for common financial operations
+- **Currency Factory**: Create currency-specific classes for cleaner code
+- **Backward compatibility**: Existing code works without changes
+- **Safe value limits**: Automatic validation to prevent precision loss
+- **Distribution algorithm**: Split amounts evenly with no lost cents
+- **Internal precision**: 6+ decimal places internally while respecting currency display rules
+
+### Previous Updates (v1.2.0)
 - Complete TypeScript migration
 - Full type definitions for all public APIs  
 - Dual module support (ES Modules + CommonJS)

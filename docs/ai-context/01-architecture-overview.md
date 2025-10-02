@@ -42,14 +42,36 @@ debit(amount) {
 ```
 src/
 ├── index.js                    # Public API exports
+├── types/                      # TypeScript type definitions
+│   ├── account.types.ts       # Account interfaces
+│   ├── money.types.ts         # Money & currency types
+│   └── transaction.types.ts   # Transaction interfaces
 ├── classes/
 │   ├── accounts/              # Account domain
-│   │   └── [Account classes]
-│   └── transactions/          # Transaction domain
-│       └── JournalEntry.js
+│   │   ├── Account.ts         # Base with Money integration
+│   │   └── [Account subclasses]
+│   ├── transactions/          # Transaction domain
+│   │   └── JournalEntry.ts   # Supports Money
+│   └── value-objects/         # Immutable value objects
+│       ├── Money.ts           # Precision-safe money
+│       ├── MoneyUtils.ts      # Money operations
+│       └── CurrencyFactory.ts # Currency creation
+└── Constants.ts               # Shared constants
+
+docs/
+├── ai-context/                # AI agent documentation
+│   ├── improvements/          # Feature specifications
+│   └── completed/             # Completed features
+└── migration_guides/          # Optional adoption guides
+    └── XXX_*.md              # Named by feature number
 ```
 
-**Design Decision**: Separate accounts from transactions to maintain single responsibility.
+**Design Decisions**: 
+- Separate accounts from transactions to maintain single responsibility
+- Value objects isolated for reusability
+- TypeScript types centralized for consistency
+- Money integrated transparently (backward compatible)
+- Migration guides separated from feature specs (adoption vs implementation)
 
 ## 🔄 Data Flow
 
@@ -138,6 +160,8 @@ describe('ClassName', () => {
 3. **Tight Coupling**: Maintain loose coupling between modules
 4. **Global State**: Avoid global variables or singletons
 5. **String-Based Types**: Move away from 'debit'/'credit' strings
+6. **Floating-Point Arithmetic for Money**: ✅ RESOLVED - Use Money value object
+7. **Currency Mixing**: ✅ PREVENTED - Money validates currency consistency
 
 ## 🔮 Future Architecture Considerations
 
@@ -166,9 +190,12 @@ When implementing improvements:
 
 ### Domain-Driven Design
 - **Entities**: Account (has identity via name)
-- **Value Objects**: Should add Money, AccountNumber
+- **Value Objects**: 
+  - Money (immutable, precision-safe monetary values)
+  - AccountNumber (future)
 - **Aggregates**: JournalEntry aggregates entries
-- **Domain Services**: Not yet implemented
+- **Domain Services**: MoneyUtils (distribution, calculations)
+- **Factory Pattern**: CurrencyFactory (dynamic currency creation)
 
 ## 🎨 Code Style Rules
 

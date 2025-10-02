@@ -1,8 +1,9 @@
 // Liability.ts
 
-import Account from './Account';
-import { ILiability } from '../../types/account.types';
-import { AccountType } from '../../Constants';
+import Account from './Account.js';
+import type { ILiability } from '../../types/account.types.js';
+import { Money } from '../value-objects/Money.js';
+import { AccountType } from '../../Constants.js';
 
 /**
  * Class representing a liability account.
@@ -19,11 +20,12 @@ class Liability extends Account implements ILiability {
     /**
      * Create a liability account.
      * @param {string} name - The name of the liability account.
-     * @param {number} initialBalance - The initial balance of the liability account. Defaults to 0.
+     * @param {number | Money} initialBalance - The initial balance of the liability account. Defaults to 0.
+     * @param {string} defaultCurrency - Default currency for number mode (default: 'CURR')
      */
-    constructor(name: string, initialBalance: number = 0) {
+    constructor(name: string, initialBalance: number | Money = 0, defaultCurrency: string = 'CURR') {
         // Liabilities increase on credit, hence isDebitPositive is false
-        super(name, initialBalance, false);
+        super(name, initialBalance, false, defaultCurrency);
     }
 
     // Liability-specific methods can be added here if needed in the future

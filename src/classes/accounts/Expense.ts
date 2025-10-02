@@ -1,8 +1,9 @@
 // Expense.ts
 
-import Account from './Account';
-import { IExpense } from '../../types/account.types';
-import { AccountType } from '../../Constants';
+import Account from './Account.js';
+import type { IExpense } from '../../types/account.types.js';
+import { Money } from '../value-objects/Money.js';
+import { AccountType } from '../../Constants.js';
 
 /**
  * Class representing an expense account.
@@ -19,11 +20,12 @@ class Expense extends Account implements IExpense {
     /**
      * Create an expense account.
      * @param {string} name - The name of the expense account.
-     * @param {number} initialBalance - The initial balance of the expense account. Defaults to 0.
+     * @param {number | Money} initialBalance - The initial balance of the expense account. Defaults to 0.
+     * @param {string} defaultCurrency - Default currency for number mode (default: 'CURR')
      */
-    constructor(name: string, initialBalance: number = 0) {
+    constructor(name: string, initialBalance: number | Money = 0, defaultCurrency: string = 'CURR') {
         // Expenses increase on debit, hence isDebitPositive is true
-        super(name, initialBalance, true);
+        super(name, initialBalance, true, defaultCurrency);
     }
 
     // Expense-specific methods can be added here if needed in the future

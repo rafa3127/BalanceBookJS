@@ -32,9 +32,10 @@ When developing any of these improvement ideas into a full specification documen
 
 ---
 
-## 📋 Improvement Ideas List
+## 📊 Improvement Ideas List
 
-   (empty)
+### ✅ Completed
+- **Money Value Object**: Precision-safe monetary calculations with multi-currency support (see 002-money-value-object.md)
    
 ## 📝 How to Develop an Idea
 

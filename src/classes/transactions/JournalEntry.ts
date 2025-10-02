@@ -2,6 +2,7 @@
 
 import { IJournalEntry, IJournalEntryLine, IEntryDetail } from '../../types/transaction.types';
 import { IAccount } from '../../types/account.types';
+import { IMoney } from '../../types/money.types';
 import { EntryType, ENTRY_TYPES, ERROR_MESSAGES, VALIDATION } from '../../Constants';
 
 /**
@@ -51,16 +52,27 @@ class JournalEntry implements IJournalEntry {
     }
 
     /**
+     * Helper method to get numeric amount from number or Money
+     */
+    private getNumericAmount(amount: number | IMoney): number {
+        if (typeof amount === 'number') {
+            return amount;
+        }
+        // It's an IMoney object
+        return amount.toNumber();
+    }
+
+    /**
      * Adds a transaction entry to the journal.
      * @param {IAccount} account - The account affected by this entry.
-     * @param {number} amount - The monetary amount of the entry.
+     * @param {number | IMoney} amount - The monetary amount of the entry.
      * @param {EntryType} type - The type of the entry, either 'debit' or 'credit'.
      * @throws {Error} If the journal entry has already been committed.
      * @throws {Error} If the account is invalid.
      * @throws {Error} If the amount is negative.
      * @throws {Error} If the entry type is invalid.
      */
-    public addEntry(account: IAccount, amount: number, type: EntryType): void {
+    public addEntry(account: IAccount, amount: number | IMoney, type: EntryType): void {
         // Check if already committed
         if (this.committed) {
             throw new Error('Cannot modify a committed journal entry');
@@ -72,7 +84,8 @@ class JournalEntry implements IJournalEntry {
         }
 
         // Validate amount
-        if (amount < 0) {
+        const numericAmount = this.getNumericAmount(amount);
+        if (numericAmount < 0) {
             throw new Error(ERROR_MESSAGES.NEGATIVE_AMOUNT);
         }
 
@@ -103,7 +116,7 @@ class JournalEntry implements IJournalEntry {
     public getDebitTotal(): number {
         return this.entries
             .filter(e => e.type === ENTRY_TYPES.DEBIT)
-            .reduce((sum, e) => sum + e.amount, 0);
+            .reduce((sum, e) => sum + this.getNumericAmount(e.amount), 0);
     }
 
     /**
@@ -113,7 +126,7 @@ class JournalEntry implements IJournalEntry {
     public getCreditTotal(): number {
         return this.entries
             .filter(e => e.type === ENTRY_TYPES.CREDIT)
-            .reduce((sum, e) => sum + e.amount, 0);
+            .reduce((sum, e) => sum + this.getNumericAmount(e.amount), 0);
     }
 
     /**
@@ -171,7 +184,7 @@ class JournalEntry implements IJournalEntry {
     public getDetails(): IEntryDetail[] {
         return this.entries.map(entry => ({
             accountName: entry.account.name,
-            amount: entry.amount,
+            amount: this.getNumericAmount(entry.amount),
             type: entry.type,
             date: this.date,
             description: this.description

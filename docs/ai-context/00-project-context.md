@@ -98,9 +98,10 @@ Key concepts the AI should understand:
 
 ## ⚠️ Important Notes
 1. The library uses `isDebitPositive` flag to determine account behavior
-2. All monetary amounts are currently handled as JavaScript numbers (potential precision issues)
+2. ✅ **RESOLVED**: Monetary precision handled via Money value object (BigInt internally)
 3. When creating PRs, ensure commits follow the conventional format
 4. The project is on GitHub at: `rafa3127/BalanceBookJS`
+5. Money integration is backward compatible - accepts both numbers and Money objects
 
 ## 🎯 Current Project Goals
 1. Maintain backwards compatibility with existing API
@@ -110,9 +111,12 @@ Key concepts the AI should understand:
 5. Keep the library lightweight and dependency-free
 
 ## 🔍 Where to Find Things
-- **Account Logic**: `/src/classes/accounts/Account.js`
-- **Transaction Logic**: `/src/classes/transactions/JournalEntry.js`
-- **Type Definitions**: Currently in JSDoc comments (moving to TypeScript)
+- **Account Logic**: `/src/classes/accounts/Account.ts` (with Money integration)
+- **Transaction Logic**: `/src/classes/transactions/JournalEntry.ts` (accepts Money)
+- **Money Implementation**: `/src/classes/value-objects/Money.ts`
+- **Money Utilities**: `/src/classes/value-objects/MoneyUtils.ts`
+- **Currency Factory**: `/src/classes/value-objects/CurrencyFactory.ts`
+- **Type Definitions**: `/src/types/` directory (TypeScript)
 - **Tests**: `/tests/` directory
 - **Built Output**: `/lib/` directory
 - **Improvement Plans**: `/docs/ai-context/improvements/`

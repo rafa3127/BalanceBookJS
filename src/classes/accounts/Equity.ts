@@ -1,8 +1,9 @@
 // Equity.ts
 
-import Account from './Account';
-import { IEquity } from '../../types/account.types';
-import { AccountType } from '../../Constants';
+import Account from './Account.js';
+import type { IEquity } from '../../types/account.types.js';
+import { Money } from '../value-objects/Money.js';
+import { AccountType } from '../../Constants.js';
 
 /**
  * Class representing an equity account.
@@ -19,11 +20,12 @@ class Equity extends Account implements IEquity {
     /**
      * Create an equity account.
      * @param {string} name - The name of the equity account.
-     * @param {number} initialBalance - The initial balance of the equity account. Defaults to 0.
+     * @param {number | Money} initialBalance - The initial balance of the equity account. Defaults to 0.
+     * @param {string} defaultCurrency - Default currency for number mode (default: 'CURR')
      */
-    constructor(name: string, initialBalance: number = 0) {
+    constructor(name: string, initialBalance: number | Money = 0, defaultCurrency: string = 'CURR') {
         // Equity increases on credit, hence isDebitPositive is false
-        super(name, initialBalance, false);
+        super(name, initialBalance, false, defaultCurrency);
     }
 
     // Equity-specific methods can be added here if needed in the future

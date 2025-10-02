@@ -3,6 +3,7 @@
  */
 
 import { IAccount } from './account.types';
+import { IMoney } from './money.types';
 import { EntryType } from '../Constants';
 
 /**
@@ -10,7 +11,7 @@ import { EntryType } from '../Constants';
  */
 export interface IJournalEntryLine {
   account: IAccount;
-  amount: number;
+  amount: number | IMoney;
   type: EntryType;
 }
 
@@ -32,7 +33,7 @@ export interface IJournalEntry {
   readonly description: string;
   readonly date: Date;
   readonly id?: string;
-  addEntry(account: IAccount, amount: number, type: EntryType): void;
+  addEntry(account: IAccount, amount: number | IMoney, type: EntryType): void;
   commit(): void;
   getDetails(): IEntryDetail[];
   isBalanced(): boolean;
