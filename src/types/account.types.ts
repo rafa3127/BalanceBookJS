@@ -2,14 +2,19 @@
  * Core type definitions for BalanceBookJS accounts
  */
 
+import type { IMoney } from './money.types.js';
+
 /**
  * Base interface for all account types
  */
 export interface IAccount {
   readonly name: string;
-  debit(amount: number): void;
-  credit(amount: number): void;
-  getBalance(): number;
+  debit(amount: number | IMoney): void;
+  credit(amount: number | IMoney): void;
+  getBalance(): number | IMoney;
+  getCurrency(): string;
+  isNumberMode(): boolean;
+  isMoneyMode(): boolean;
 }
 
 /**
@@ -24,8 +29,9 @@ export interface IAccountInternal extends IAccount {
  */
 export interface AccountConstructorParams {
   name: string;
-  initialBalance?: number;
+  initialBalance?: number | IMoney;
   isDebitPositive: boolean;
+  defaultCurrency?: string;
 }
 
 /**
@@ -52,6 +58,6 @@ export interface IExpense extends IAccount {
 }
 
 /**
- * Union type for all account types
+ * Union type for any account type
  */
 export type AnyAccount = IAsset | ILiability | IEquity | IIncome | IExpense;

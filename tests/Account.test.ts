@@ -59,10 +59,23 @@ describe('Account class', () => {
       expect(account.getBalance()).toBeCloseTo(1099.99, 2);
     });
 
-    test('debit should handle very large amounts', () => {
+    test('debit should handle large amounts within safe limits', () => {
       const account = new Account('Test Account', 0, true);
-      account.debit(Number.MAX_SAFE_INTEGER - 1);
-      expect(account.getBalance()).toBe(Number.MAX_SAFE_INTEGER - 1);
+      // Use a large but safe value for CURR currency with internal scale 6
+      // Max safe value is 9,007,199,254 (9 billion)
+      const largeButSafe = 9_000_000_000;
+      account.debit(largeButSafe);
+      expect(account.getBalance()).toBe(largeButSafe);
+    });
+    
+    test('debit should throw error for amounts exceeding safe limits', () => {
+      const account = new Account('Test Account', 0, true);
+      // Number.MAX_SAFE_INTEGER - 1 exceeds the safe limit for scale 6
+      const tooLarge = Number.MAX_SAFE_INTEGER - 1;
+      
+      expect(() => {
+        account.debit(tooLarge);
+      }).toThrow(/exceeds the maximum safe value/);
     });
   });
 
@@ -98,10 +111,22 @@ describe('Account class', () => {
       expect(account.getBalance()).toBeCloseTo(1099.99, 2);
     });
 
-    test('credit should handle very large amounts', () => {
+    test('credit should handle large amounts within safe limits', () => {
       const account = new Account('Test Account', 0, false);
-      account.credit(Number.MAX_SAFE_INTEGER - 1);
-      expect(account.getBalance()).toBe(Number.MAX_SAFE_INTEGER - 1);
+      // Use a large but safe value for CURR currency with internal scale 6
+      const largeButSafe = 9_000_000_000;
+      account.credit(largeButSafe);
+      expect(account.getBalance()).toBe(largeButSafe);
+    });
+    
+    test('credit should throw error for amounts exceeding safe limits', () => {
+      const account = new Account('Test Account', 0, false);
+      // Number.MAX_SAFE_INTEGER - 1 exceeds the safe limit for scale 6
+      const tooLarge = Number.MAX_SAFE_INTEGER - 1;
+      
+      expect(() => {
+        account.credit(tooLarge);
+      }).toThrow(/exceeds the maximum safe value/);
     });
   });
 
@@ -175,10 +200,18 @@ describe('Account class', () => {
       expect(account.getBalance()).toBeCloseTo(0.3, 10);
     });
 
-    test('should handle very small amounts', () => {
+    test('should handle very small amounts with rounding', () => {
       const account = new Account('Test Account', 0, true);
       account.debit(0.000001);
-      expect(account.getBalance()).toBeCloseTo(0.000001, 10);
+      // CURR currency has 2 decimal places, so 0.000001 rounds to 0.00
+      // The internal Money object maintains precision but displays as 0
+      expect(account.getBalance()).toBe(0);
+    });
+    
+    test('should handle amounts at the display precision', () => {
+      const account = new Account('Test Account', 0, true);
+      account.debit(0.01); // Smallest displayable unit for CURR (2 decimals)
+      expect(account.getBalance()).toBe(0.01);
     });
 
     test('should handle alternating operations', () => {

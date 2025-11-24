@@ -4,15 +4,25 @@
  */
 
 // Account classes
-export { default as Account } from './classes/accounts/Account';
-export { default as Asset } from './classes/accounts/Asset';
-export { default as Liability } from './classes/accounts/Liability';
-export { default as Equity } from './classes/accounts/Equity';
-export { default as Income } from './classes/accounts/Income';
-export { default as Expense } from './classes/accounts/Expense';
+export { default as Account } from './classes/accounts/Account.js';
+export { default as Asset } from './classes/accounts/Asset.js';
+export { default as Liability } from './classes/accounts/Liability.js';
+export { default as Equity } from './classes/accounts/Equity.js';
+export { default as Income } from './classes/accounts/Income.js';
+export { default as Expense } from './classes/accounts/Expense.js';
 
 // Transaction classes
-export { default as JournalEntry } from './classes/transactions/JournalEntry';
+export { default as JournalEntry } from './classes/transactions/JournalEntry.js';
+
+// Value Objects
+export { 
+  Money,
+  MoneyUtils,
+  createCurrency,
+  createFactory,
+  CurrencyRegistry,
+  registerCurrencyConfig
+} from './classes/value-objects/index.js';
 
 // Type exports for TypeScript consumers
 export type {
@@ -25,7 +35,7 @@ export type {
   IIncome,
   IExpense,
   AnyAccount
-} from './types/account.types';
+} from './types/account.types.js';
 
 export type {
   IJournalEntry,
@@ -34,7 +44,16 @@ export type {
   JournalEntryConstructorParams,
   TransactionStatus,
   IJournalEntryWithStatus
-} from './types/transaction.types';
+} from './types/transaction.types.js';
+
+export type {
+  IMoney,
+  IMoneyOptions,
+  ICurrencyConfig,
+  IMoneyJSON,
+  ICurrencyConstructor,
+  ICurrencyFactory
+} from './types/money.types.js';
 
 // Constants and enums
 export {
@@ -44,8 +63,8 @@ export {
   ACCOUNT_BEHAVIOR,
   VALIDATION,
   ERROR_MESSAGES
-} from './Constants';
+} from './Constants.js';
 
 // Re-export everything from the convenience modules
-export * from './classes/accounts';
-export * from './classes/transactions';
+export * from './classes/accounts/index.js';
+export * from './classes/transactions/index.js';

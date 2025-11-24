@@ -36,7 +36,7 @@ Welcome! You are working on **BalanceBookJS**, a TypeScript/JavaScript library i
 ├── 📁 improvements/                 # Fully documented improvements
 │   ├── 📄 _template.md             # Template for new improvements
 │   ├── 📄 001-typescript-migration.md ✅ COMPLETED
-│   ├── 📄 002-money-value-object.md
+│   ├── 📄 002-money-value-object.md ✅ COMPLETED
 │   ├── 📄 003-general-ledger.md
 │   ├── 📄 004-financial-reports.md
 │   ├── 📄 005-multi-currency.md
@@ -45,6 +45,14 @@ Welcome! You are working on **BalanceBookJS**, a TypeScript/JavaScript library i
 ├── 📁 completed/                    # Completed improvements
 └── 📄 improvement-ideas-backlog.md # 100+ undeveloped ideas
 ```
+
+### 3.5️⃣ **Migration & Adoption Guides**
+```
+📁 /docs/migration_guides/           # Guides for adopting new features
+├── 📄 002_MONEY_OBJECTS_ADOPTION_GUIDES.md  # How to adopt Money (optional)
+└── 📄 README.md                    # Index of migration guides
+```
+**Note**: These guides are for OPTIONAL feature adoption. We maintain backward compatibility, so migrations are never forced.
 
 ### 4️⃣ **Project Configuration**
 ```
@@ -75,6 +83,12 @@ Welcome! You are working on **BalanceBookJS**, a TypeScript/JavaScript library i
 1. Check `/docs/ai-context/improvements/` for existing specs
 2. Check `/docs/ai-context/improvement-ideas-backlog.md` for ideas
 3. Use `/docs/ai-context/improvements/_template.md` to create new specs
+
+### "I need to create adoption/migration guides"
+1. Place guides in `/docs/migration_guides/`
+2. Name format: `XXX_FEATURE_NAME_ADOPTION_GUIDES.md` (XXX = improvement number)
+3. Focus on optional adoption, not forced migration
+4. Include gradual adoption strategies
 
 ### "I need to understand the current code"
 1. Start with `/src/index.ts` for exports
