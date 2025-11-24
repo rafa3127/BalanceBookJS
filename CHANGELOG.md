@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0](https://github.com/rafa3127/BalanceBookJS/compare/v1.3.0...v2.0.0) (2025-11-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* **money:** None - fully backward compatible All existing code continues to work without changes
+
+### Features
+
+* **money:** add Money value object for precise monetary calculations ([36ad7d0](https://github.com/rafa3127/BalanceBookJS/commit/36ad7d0749dd03286daa375cc1e975ee0e1c7f74))
+
 ## [1.3.0](https://github.com/rafa3127/BalanceBookJS/compare/v1.2.0...v1.3.0) (2025-09-07)
 
 
