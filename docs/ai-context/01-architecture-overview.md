@@ -37,6 +37,30 @@ debit(amount) {
 - Validates balance before committing
 - Applies all changes atomically
 
+#### 4. **Adapter Pattern**
+Used in the Persistence Layer to support multiple storage backends:
+```typescript
+interface IAdapter {
+    save(collection, id, data): Promise<string>;
+    get(collection, id): Promise<any>;
+}
+// Implementations: MemoryAdapter, FirebaseAdapter, SqlAdapter
+```
+
+#### 5. **Abstract Factory Pattern**
+Used to generate persistable classes bound to a specific adapter:
+```typescript
+const factory = new Factory(adapter);
+const { Account } = factory.createClasses();
+```
+
+#### 6. **Mixin Pattern**
+Used to inject persistence capabilities into domain classes without inheritance:
+```typescript
+// PersistableMixin adds .save(), .findById() to Account
+const PersistableAccount = PersistableMixin(Account, adapter, 'accounts');
+```
+
 ### Module Organization
 
 ```
@@ -55,7 +79,13 @@ src/
 │   └── value-objects/         # Immutable value objects
 │       ├── Money.ts           # Precision-safe money
 │       ├── MoneyUtils.ts      # Money operations
+│       ├── MoneyUtils.ts      # Money operations
 │       └── CurrencyFactory.ts # Currency creation
+├── persistence/               # Persistence Layer
+│   ├── adapters/              # Storage adapters
+│   ├── interfaces.ts          # Core interfaces
+│   ├── Factory.ts             # Class factory
+│   └── PersistableMixin.ts    # Persistence logic
 └── Constants.ts               # Shared constants
 
 docs/
@@ -126,7 +156,9 @@ Current approach:
 ### Current State
 - **Local State**: Each account maintains its own balance
 - **No Global State**: No centralized ledger or store
-- **No Persistence**: State exists only in memory
+- **Local State**: Each account maintains its own balance
+- **No Global State**: No centralized ledger or store
+- **Persistence**: Supported via `persistence` module (opt-in)
 
 ### Missing Concepts
 - General Ledger (central record)

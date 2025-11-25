@@ -5,31 +5,33 @@ import { IAccount } from '../../types/account.types';
 import { IMoney } from '../../types/money.types';
 import { EntryType, ENTRY_TYPES, ERROR_MESSAGES, VALIDATION } from '../../Constants';
 
+import { ISerializable } from '../../types/serialization';
+
 /**
  * Class representing a journal entry for recording double-entry bookkeeping transactions.
  * @implements {IJournalEntry}
  */
-class JournalEntry implements IJournalEntry {
+class JournalEntry implements IJournalEntry, ISerializable {
     /**
      * Description of the journal entry
      */
     public readonly description: string;
-    
+
     /**
      * Date of the journal entry
      */
     public readonly date: Date;
-    
+
     /**
      * Optional unique identifier for the journal entry
      */
     public readonly id?: string;
-    
+
     /**
      * Array of individual transaction lines
      */
     private entries: IJournalEntryLine[] = [];
-    
+
     /**
      * Flag indicating if the journal entry has been committed
      */
@@ -45,7 +47,7 @@ class JournalEntry implements IJournalEntry {
         if (!description || description.trim().length === 0) {
             throw new Error('Journal entry description cannot be empty');
         }
-        
+
         this.description = description;
         this.date = date;
         this.id = id;
@@ -104,7 +106,7 @@ class JournalEntry implements IJournalEntry {
     public isBalanced(): boolean {
         const debitTotal = this.getDebitTotal();
         const creditTotal = this.getCreditTotal();
-        
+
         // Use tolerance for floating point comparison
         return Math.abs(debitTotal - creditTotal) < VALIDATION.BALANCE_TOLERANCE;
     }
@@ -150,7 +152,7 @@ class JournalEntry implements IJournalEntry {
         // Check if there's at least one debit and one credit
         const hasDebit = this.entries.some(e => e.type === ENTRY_TYPES.DEBIT);
         const hasCredit = this.entries.some(e => e.type === ENTRY_TYPES.CREDIT);
-        
+
         if (!hasDebit || !hasCredit) {
             throw new Error(ERROR_MESSAGES.EMPTY_JOURNAL_ENTRY);
         }
@@ -213,6 +215,84 @@ class JournalEntry implements IJournalEntry {
      */
     public getEntries(): IJournalEntryLine[] {
         return [...this.entries];
+    }
+
+    /**
+     * Serialize the journal entry for persistence
+     */
+    public serialize(): any {
+        return {
+            description: this.description,
+            date: this.date,
+            committed: this.committed,
+            entries: this.entries.map(entry => {
+                const accountId = (entry.account as any).id;
+                if (!accountId) {
+                    throw new Error(`Cannot serialize JournalEntry: Referenced Account '${entry.account.name}' must be saved first`);
+                }
+                return {
+                    accountId: accountId,
+                    amount: this.getNumericAmount(entry.amount),
+                    type: entry.type
+                };
+            })
+        };
+    }
+
+    /**
+     * Static reference to the Account model for hydration.
+     * Injected by the Factory.
+     */
+    public static AccountModel: any = null;
+
+    /**
+     * Create a JournalEntry instance from serialized data
+     */
+    public static async fromData(data: any): Promise<JournalEntry> {
+        const entry = new JournalEntry(
+            data.description,
+            new Date(data.date)
+        );
+
+        // Restore committed state if needed (though usually we shouldn't modify private state directly)
+        // Ideally, we replay the commit, but for hydration we might need to bypass checks
+        if (data.committed) {
+            (entry as any).committed = true;
+        }
+
+        if (data.entries && Array.isArray(data.entries)) {
+            const AccountModel = (this as any).AccountModel || JournalEntry.AccountModel;
+            if (!AccountModel) {
+                console.warn('AccountModel not injected into JournalEntry. Cannot hydrate entries.');
+                return entry;
+            }
+
+            for (const entryData of data.entries) {
+                const account = await AccountModel.findById(entryData.accountId);
+                if (account) {
+                    // We use addEntry which validates everything again
+                    // This is safer than direct array manipulation
+                    try {
+                        // If already committed, we might need to bypass addEntry checks
+                        if (entry.isCommitted()) {
+                            (entry as any).entries.push({
+                                account: account,
+                                amount: entryData.amount,
+                                type: entryData.type
+                            });
+                        } else {
+                            entry.addEntry(account, entryData.amount, entryData.type);
+                        }
+                    } catch (e) {
+                        console.warn(`Failed to restore entry line: ${e}`);
+                    }
+                } else {
+                    console.warn(`Account not found for ID: ${entryData.accountId}`);
+                }
+            }
+        }
+
+        return entry;
     }
 }
 

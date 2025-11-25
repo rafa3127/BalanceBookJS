@@ -13,7 +13,13 @@
       "require": "./lib/cjs/index.js",
       "default": "./lib/index.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./persistence": {
+      "types": "./lib/persistence/index.d.ts",
+      "import": "./lib/persistence/index.js",
+      "require": "./lib/cjs/persistence/index.js",
+      "default": "./lib/persistence/index.js"
+    }
   },
   "scripts": {
     "start": "node src/index.js",

@@ -1,5 +1,4 @@
-// Account.ts
-
+import { ISerializable } from '../../types/serialization';
 import { IAccountInternal } from '../../types/account.types.js';
 import { Money } from '../value-objects/Money.js';
 import { ERROR_MESSAGES } from '../../Constants.js';
@@ -9,22 +8,22 @@ import { ERROR_MESSAGES } from '../../Constants.js';
  * Implements transparent mode - returns the same type as initialized.
  * @implements {IAccountInternal}
  */
-class Account implements IAccountInternal {
+class Account implements IAccountInternal, ISerializable {
     /**
      * The name of the account
      */
     public readonly name: string;
-    
+
     /**
      * Internal balance stored as Money for precision
      */
     protected balanceMoney: Money;
-    
+
     /**
      * Mode tracking - was initialized with number or Money
      */
     protected readonly initialMode: 'number' | 'money';
-    
+
     /**
      * Determines if debits increase (true) or decrease (false) the balance
      */
@@ -39,8 +38,8 @@ class Account implements IAccountInternal {
      * @throws {Error} If initialBalance is negative
      */
     constructor(
-        name: string, 
-        initialBalance: number | Money = 0, 
+        name: string,
+        initialBalance: number | Money = 0,
         isDebitPositive: boolean,
         defaultCurrency: string = 'CURR'
     ) {
@@ -48,10 +47,10 @@ class Account implements IAccountInternal {
         if (!name || name.trim().length === 0) {
             throw new Error('Account name cannot be empty');
         }
-        
+
         this.name = name;
         this.isDebitPositive = isDebitPositive;
-        
+
         // Detect initialization mode and setup balance
         if (Money.isMoney(initialBalance)) {
             // Money mode
@@ -88,7 +87,7 @@ class Account implements IAccountInternal {
             }
             return amount;
         }
-        
+
         // Convert number to Money using account's currency
         return new Money(amount, this.balanceMoney.currency);
     }
@@ -100,11 +99,11 @@ class Account implements IAccountInternal {
      */
     public debit(amount: number | Money): void {
         const moneyAmount = this.toMoney(amount);
-        
+
         if (moneyAmount.isNegative()) {
             throw new Error(ERROR_MESSAGES.NEGATIVE_AMOUNT);
         }
-        
+
         if (this.isDebitPositive) {
             this.balanceMoney = this.balanceMoney.add(moneyAmount);
         } else {
@@ -119,11 +118,11 @@ class Account implements IAccountInternal {
      */
     public credit(amount: number | Money): void {
         const moneyAmount = this.toMoney(amount);
-        
+
         if (moneyAmount.isNegative()) {
             throw new Error(ERROR_MESSAGES.NEGATIVE_AMOUNT);
         }
-        
+
         if (this.isDebitPositive) {
             this.balanceMoney = this.balanceMoney.subtract(moneyAmount);
         } else {
@@ -137,11 +136,11 @@ class Account implements IAccountInternal {
      * @return {number | Money} The current balance.
      */
     public getBalance(): number | Money {
-        return this.initialMode === 'number' 
-            ? this.balanceMoney.toNumber() 
+        return this.initialMode === 'number'
+            ? this.balanceMoney.toNumber()
             : this.balanceMoney;
     }
-    
+
     /**
      * Get the currency of this account
      * @return {string} The currency code
@@ -149,7 +148,7 @@ class Account implements IAccountInternal {
     public getCurrency(): string {
         return this.balanceMoney.currency;
     }
-    
+
     /**
      * Check if account was initialized with numbers
      * @return {boolean} True if using number mode
@@ -157,7 +156,7 @@ class Account implements IAccountInternal {
     public isNumberMode(): boolean {
         return this.initialMode === 'number';
     }
-    
+
     /**
      * Check if account was initialized with Money
      * @return {boolean} True if using Money mode
@@ -185,6 +184,49 @@ class Account implements IAccountInternal {
             throw new Error(ERROR_MESSAGES.NEGATIVE_AMOUNT);
         }
         this.balanceMoney = new Money(value, this.balanceMoney.currency);
+    }
+
+    /**
+     * Serialize the account for persistence
+     */
+    public serialize(): any {
+        return {
+            name: this.name,
+            balance: this.balanceMoney.toJSON(),
+            isDebitPositive: this.isDebitPositive,
+            initialMode: this.initialMode,
+            currency: this.balanceMoney.currency
+        };
+    }
+
+    /**
+     * Create an Account instance from serialized data
+     */
+    public static fromData(data: any): Account {
+        let initialBalance: number | Money = 0;
+
+        if (data.balance) {
+            if (data.initialMode === 'number') {
+                // If originally created with number, restore as number
+                initialBalance = data.balance.amount;
+            } else {
+                // Reconstruct Money object
+                initialBalance = new Money(
+                    data.balance.amount,
+                    data.balance.currency || data.currency
+                );
+            }
+        }
+
+        // Use the public constructor to ensure all invariants are respected
+        const account = new Account(
+            data.name,
+            initialBalance,
+            data.isDebitPositive,
+            data.currency || 'CURR'
+        );
+
+        return account;
     }
 }
 

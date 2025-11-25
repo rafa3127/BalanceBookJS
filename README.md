@@ -526,6 +526,36 @@ loanEntry.addEntry(loan, 5000, ENTRY_TYPES.CREDIT);
 processTransaction(loanEntry);
 ```
 
+## Persistence Layer
+
+BalanceBookJS includes a flexible persistence layer that allows you to save and retrieve accounts and journal entries using various storage backends.
+
+### Basic Usage
+
+```typescript
+import { Factory, MemoryAdapter } from 'balance-book-js/persistence';
+
+// 1. Setup
+const adapter = new MemoryAdapter();
+const factory = new Factory(adapter);
+
+// 2. Create persistable classes
+const { Account, JournalEntry } = factory.createClasses();
+
+// 3. Use classes with persistence methods
+const savings = new Account('Savings', 1000, true);
+await savings.save(); // Saves to storage
+
+const entry = new JournalEntry('Monthly Savings');
+entry.addEntry(savings, 500, 'debit');
+entry.commit();
+await entry.save(); // Saves entry and relationships
+```
+
+### Adapters
+
+The library comes with a `MemoryAdapter` for development and testing. You can implement the `IAdapter` interface to connect to any database (Firebase, SQL, MongoDB, etc.).
+
 ## Error Handling
 
 * The `JournalEntry.commit()` method will throw an `Error` if:
@@ -537,6 +567,8 @@ processTransaction(loanEntry);
   - The amount is negative
   - The type is not 'debit' or 'credit'
   - The journal entry has already been committed
+* The `JournalEntry.serialize()` method will throw an `Error` if:
+  - Any referenced account has not been saved (missing ID)
 * Account `debit()` and `credit()` methods will throw an `Error` if:
   - The amount is negative
   - Currency mismatch when using Money objects
