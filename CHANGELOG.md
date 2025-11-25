@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/rafa3127/BalanceBookJS/compare/v2.0.0...v2.1.0) (2025-11-25)
+
+
+### Features
+
+* **persistence:** implement core infrastructure ([b62fc83](https://github.com/rafa3127/BalanceBookJS/commit/b62fc83d6fece0a4d6650cbe4ff5e3d2b00bf0a6))
+
 ## [2.0.0](https://github.com/rafa3127/BalanceBookJS/compare/v1.3.0...v2.0.0) (2025-11-24)
 
 
