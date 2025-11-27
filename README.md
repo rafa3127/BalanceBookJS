@@ -13,7 +13,7 @@ BalanceBookJS is a TypeScript/JavaScript library that provides an object-oriente
 * Automatic balance calculation based on debit and credit entries.
 * Enforces double-entry bookkeeping principles in Journal Entries (debits must equal credits).
 * **Persistence Layer**: Plugin-based architecture with adapters for different storage backends.
-* **Built-in Adapters**: MemoryAdapter (testing) and FirebaseAdapter (Firestore).
+* **Built-in Adapters**: MemoryAdapter (testing), FirebaseAdapter (Firestore), and SQLAdapter (PostgreSQL, MySQL, SQLite, etc.).
 * **Bulk Operations**: Efficient `deleteMany()` and `updateMany()` for batch data manipulation.
 * **Full TypeScript support** with comprehensive type definitions.
 * **Dual module system**: Works with both ES Modules and CommonJS.
@@ -569,7 +569,7 @@ adapter.clear(); // Helper to reset storage in tests
 ```
 
 #### FirebaseAdapter
-For Firebase/Firestore backends:
+For Firebase/Firestore backends (requires `firebase-admin` peer dependency):
 
 ```typescript
 import { FirebaseAdapter } from 'balance-book-js/persistence';
@@ -587,6 +587,53 @@ const { Account } = factory.createClasses();
 const account = new Account('Cash', 5000, true);
 await account.save(); // Saves to Firestore
 ```
+
+#### SQLAdapter
+For SQL databases using Knex.js (requires `knex` peer dependency + database driver):
+
+```typescript
+import { SQLAdapter } from 'balance-book-js/persistence';
+
+// PostgreSQL example
+const adapter = new SQLAdapter({
+    client: 'pg',
+    connection: {
+        host: 'localhost',
+        user: 'your_user',
+        password: 'your_password',
+        database: 'your_db'
+    }
+});
+
+// SQLite example
+const sqliteAdapter = new SQLAdapter({
+    client: 'sqlite3',
+    connection: { filename: './mydb.sqlite' },
+    useNullAsDefault: true
+});
+
+// MySQL example
+const mysqlAdapter = new SQLAdapter({
+    client: 'mysql2',
+    connection: {
+        host: 'localhost',
+        user: 'root',
+        password: 'password',
+        database: 'myapp'
+    }
+});
+
+const factory = new Factory(adapter);
+const { Account } = factory.createClasses();
+
+// Works the same as other adapters
+const account = new Account('Cash', 5000, true);
+await account.save(); // Saves to SQL database
+```
+
+**Supported SQL Dialects**: PostgreSQL, MySQL, SQLite, MSSQL, Oracle (any dialect supported by Knex.js)
+
+> **Note**: You must create your database tables/schema before using the SQLAdapter. The adapter does not auto-generate schemas.
 
 ### Instance Methods
 
@@ -661,6 +708,7 @@ class CustomAdapter implements IAdapter {
 - **Bulk operations don't rehidrate**: `updateMany` and `deleteMany` return counts, not updated instances. Objects in memory are not automatically synchronized.
 - **Firebase batch limits**: The FirebaseAdapter automatically handles Firestore's 500 operations per batch limit.
 - **Firestore indexes**: Multi-field queries require composite indexes in Firebase Console.
+- **SQL compatibility**: SQLAdapter is tested with PostgreSQL and SQLite. MySQL support requires manual ID handling as `.returning()` is not fully supported.
 
 ## Error Handling
 
@@ -691,6 +739,7 @@ Current version: 2.2.0
 
 ### What's New in v2.2.0
 - **FirebaseAdapter**: Firestore integration with automatic batch handling (500 ops limit)
+- **SQLAdapter**: SQL database support via Knex.js (PostgreSQL, MySQL, SQLite, MSSQL, Oracle)
 - **Bulk Operations**: `deleteMany()` and `updateMany()` for efficient data manipulation
 - **Data Sanitization**: Automatic handling of undefined values while preserving Date objects
 

@@ -186,3 +186,53 @@ console.log(acc.name); // Still 'Old' - desynchronized!
 - Logical operators (`$and`, `$or`)
 - Nested field queries
 - Each adapter may need to translate these to native query syntax
+
+### 4. SQLAdapter - MySQL Compatibility
+**Issue**: `.returning('id')` is not fully supported in MySQL.
+
+**Current behavior**:
+- PostgreSQL and SQLite: Work correctly with `.returning('id')`
+- MySQL: May return `undefined` or `0` instead of the actual inserted ID
+
+**Possible future solutions**:
+- Detect dialect and use `lastInsertId` for MySQL
+- Require ID to be provided before save for MySQL users
+- Implement dialect-specific ID retrieval strategies
+
+**Decision**: Document as known limitation. PostgreSQL and SQLite are fully supported. MySQL users should provide IDs explicitly.
+
+### 5. SQLAdapter - Upsert Efficiency
+**Issue**: `save()` with existing ID performs 2 queries (check existence + update/insert).
+
+**Current behavior**:
+```typescript
+// Current implementation
+const exists = await this.db(collection).where('id', id).first();
+if (exists) {
+    await this.db(collection).where('id', id).update(cleanData);
+} else {
+    await this.db(collection).insert({ ...cleanData, id });
+}
+```
+
+**Possible future solutions**:
+- Use `ON CONFLICT` (PostgreSQL) / `ON DUPLICATE KEY` (MySQL) for true upsert
+- Implement dialect-specific upsert strategies
+- Add `upsert()` method to adapter interface
+
+**Decision**: Keep current implementation for cross-dialect compatibility. Performance impact is minimal for typical use cases.
+
+### 6. SQLAdapter - Nested Objects Serialization
+**Issue**: SQL databases don't support nested objects natively. Current `sanitizeData` handles arrays (JSON.stringify) but not nested objects.
+
+**Current behavior**:
+- Arrays: Serialized to JSON string
+- Nested objects: Passed as-is (may fail depending on schema)
+- Dates: Preserved (Knex handles conversion)
+
+**Possible future solutions**:
+- Auto-detect and JSON.stringify nested objects
+- Provide configuration option for JSON columns
+- Document that users should flatten objects or use JSON columns
+
+**Decision**: Document as user responsibility. Users should design schemas appropriately or stringify nested data before save.
