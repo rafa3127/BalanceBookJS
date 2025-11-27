@@ -35,6 +35,41 @@ export class MemoryAdapter implements IAdapter {
         }
     }
 
+    async deleteMany(collection: string, filters: IQueryFilters): Promise<number> {
+        const collectionMap = this.storage.get(collection);
+        if (!collectionMap) return 0;
+
+        const itemsToDelete = await this.query(collection, filters);
+        let count = 0;
+
+        for (const item of itemsToDelete) {
+            if (item.id) {
+                collectionMap.delete(item.id);
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    async updateMany(collection: string, filters: IQueryFilters, data: any): Promise<number> {
+        const collectionMap = this.storage.get(collection);
+        if (!collectionMap) return 0;
+
+        const itemsToUpdate = await this.query(collection, filters);
+        let count = 0;
+
+        for (const item of itemsToUpdate) {
+            if (item.id) {
+                const updatedItem = { ...item, ...data, id: item.id };
+                collectionMap.set(item.id, updatedItem);
+                count++;
+            }
+        }
+
+        return count;
+    }
+
     async query<T = any>(collection: string, filters?: IQueryFilters): Promise<T[]> {
         const collectionMap = this.storage.get(collection);
         if (!collectionMap) return [];

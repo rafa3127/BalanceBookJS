@@ -128,3 +128,56 @@ This improvement builds upon the core persistence layer established in Improveme
 ## 💡 Design Decisions
 - **Separate Packages**: Adapters should be separate packages (e.g., `@balancebook/firebase`) to keep the core library lightweight and dependency-free.
 - **Unified Interface**: All adapters must strictly adhere to the `IAdapter` interface defined in the core.
+
+## 🔧 Core Extension (Pre-Phase 1) - Completed
+Before implementing the adapters, the core persistence layer was extended with bulk operations:
+
+### Added to `IAdapter` interface:
+- `deleteMany(collection, filters): Promise<number>`
+- `updateMany(collection, filters, data): Promise<number>`
+
+### Added to `PersistableMixin` (static methods):
+- `deleteMany(filters): Promise<number>`
+- `updateMany(filters, data): Promise<number>`
+
+### Implementation in `MemoryAdapter`:
+- Both methods reuse `query()` for filtering logic
+- Returns count of affected documents
+
+## ⚠️ Technical Debt & Future Considerations
+
+### 1. Bulk Operations - No Instance Rehidration
+**Issue**: `updateMany` and `deleteMany` do not update/invalidate in-memory instances.
+
+**Current behavior**:
+```typescript
+const acc = await Account.findById('123'); // acc.name = 'Old'
+await Account.updateMany({ id: '123' }, { name: 'New' });
+console.log(acc.name); // Still 'Old' - desynchronized!
+```
+
+**Possible future solutions**:
+- Add `updateManyAndReturn()` / `deleteManyAndReturn()` variants that return affected instances
+- Implement an instance registry/cache with invalidation
+- Document this as expected behavior (consistent with most ORMs)
+
+**Decision**: Keep current implementation (returns `number`). This is the standard behavior in Prisma, TypeORM, etc. Add `*AndReturn` variants only if use cases emerge.
+
+### 2. Test Coverage for Bulk Operations
+**Current state**: Basic tests exist in `BulkOperations.test.ts`
+
+**Recommended additions**:
+- [ ] Empty filters behavior (`{}`) - should it affect all documents?
+- [ ] Non-existent collection returns 0
+- [ ] Filters matching nothing returns 0
+- [ ] Multiple documents affected in single operation
+- [ ] Concurrent bulk operations
+
+### 3. Query Filters Limitations
+**Current `IQueryFilters`**: Simple key-value equality matching only.
+
+**Future considerations for adapters**:
+- Comparison operators (`$gt`, `$lt`, `$in`, etc.)
+- Logical operators (`$and`, `$or`)
+- Nested field queries
+- Each adapter may need to translate these to native query syntax
