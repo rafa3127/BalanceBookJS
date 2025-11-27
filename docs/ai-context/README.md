@@ -60,14 +60,19 @@ Use `improvements/_template.md` as a starting point for new feature requests.
 ## 📊 Current Status
 
 ### Priority Queue
-1. TypeScript Migration (001)
-2. Money Value Object (002)
-3. General Ledger (003)
-4. Financial Reports (004)
-5. Multi-Currency Support (005)
+1. General Ledger (003)
+2. Financial Reports (004)
+3. Multi-Currency Support (005)
+4. Accounting Periods (006)
+5. Validation & Business Rules (007)
+6. Developer Guide Documentation (600)
+7. AI Context Optimization (601)
 
 ### In Progress
 - None
 
 ### Completed
-- None (new documentation system)
+- TypeScript Migration (001)
+- Money Value Object (002)
+- Persistence Layer Infrastructure (008)
+- Persistence Adapters - Firebase & SQL (009)
