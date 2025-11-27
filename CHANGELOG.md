@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.2.0](https://github.com/rafa3127/BalanceBookJS/compare/v2.1.0...v2.2.0) (2025-11-27)
+
+
+### Features
+
+* add bulk operations (deleteMany, updateMany) to persistence layer ([a6d70bf](https://github.com/rafa3127/BalanceBookJS/commit/a6d70bf3c435bca87e1891c5f5d22a756314a7be))
+* implement FirebaseAdapter as internal module ([d824d88](https://github.com/rafa3127/BalanceBookJS/commit/d824d8860288ec52d4bc908b32ea99622293af0a))
+* implement SQLAdapter as internal module ([461f299](https://github.com/rafa3127/BalanceBookJS/commit/461f2997dbd367dcb408c25a201e13d3dacc05ef))
+
 ## [2.1.0](https://github.com/rafa3127/BalanceBookJS/compare/v2.0.0...v2.1.0) (2025-11-25)
 
 

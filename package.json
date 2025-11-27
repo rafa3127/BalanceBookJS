@@ -1,6 +1,6 @@
 {
   "name": "balance-book-js",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "BalanceBookJS is a JavaScript library that provides an object-oriented approach based on fundamental accounting principles.",
   "main": "lib/cjs/index.js",
   "module": "lib/index.js",
