@@ -12,10 +12,12 @@ BalanceBookJS is a TypeScript/JavaScript library that provides an object-oriente
 * **Multi-currency support** with automatic currency validation.
 * Automatic balance calculation based on debit and credit entries.
 * Enforces double-entry bookkeeping principles in Journal Entries (debits must equal credits).
+* **Persistence Layer**: Plugin-based architecture with adapters for different storage backends.
+* **Built-in Adapters**: MemoryAdapter (testing) and FirebaseAdapter (Firestore).
+* **Bulk Operations**: Efficient `deleteMany()` and `updateMany()` for batch data manipulation.
 * **Full TypeScript support** with comprehensive type definitions.
 * **Dual module system**: Works with both ES Modules and CommonJS.
 * Written in TypeScript, compiled to JavaScript for maximum compatibility.
-* Lightweight with zero runtime dependencies.
 * **Backward compatible** - works with both numbers and Money objects.
 
 ## Prerequisites
@@ -528,33 +530,137 @@ processTransaction(loanEntry);
 
 ## Persistence Layer
 
-BalanceBookJS includes a flexible persistence layer that allows you to save and retrieve accounts and journal entries using various storage backends.
+BalanceBookJS includes a flexible persistence layer that allows you to save and retrieve accounts and journal entries using various storage backends through a plugin architecture.
 
 ### Basic Usage
 
 ```typescript
 import { Factory, MemoryAdapter } from 'balance-book-js/persistence';
 
-// 1. Setup
+// 1. Setup adapter and factory
 const adapter = new MemoryAdapter();
 const factory = new Factory(adapter);
 
 // 2. Create persistable classes
-const { Account, JournalEntry } = factory.createClasses();
+const { Account, Asset, JournalEntry } = factory.createClasses();
 
 // 3. Use classes with persistence methods
-const savings = new Account('Savings', 1000, true);
+const savings = new Asset('Savings', 1000);
 await savings.save(); // Saves to storage
+console.log(savings.id); // Auto-generated ID
 
-const entry = new JournalEntry('Monthly Savings');
-entry.addEntry(savings, 500, 'debit');
-entry.commit();
-await entry.save(); // Saves entry and relationships
+// 4. Query data
+const account = await Asset.findById(savings.id);
+const allAccounts = await Account.findAll();
+const filtered = await Account.findAll({ name: 'Savings' });
 ```
 
-### Adapters
+### Available Adapters
 
-The library comes with a `MemoryAdapter` for development and testing. You can implement the `IAdapter` interface to connect to any database (Firebase, SQL, MongoDB, etc.).
+#### MemoryAdapter (Built-in)
+In-memory storage for development and testing:
+
+```typescript
+import { MemoryAdapter } from 'balance-book-js/persistence';
+
+const adapter = new MemoryAdapter();
+// Data persists only during runtime
+adapter.clear(); // Helper to reset storage in tests
+```
+
+#### FirebaseAdapter
+For Firebase/Firestore backends:
+
+```typescript
+import { FirebaseAdapter } from 'balance-book-js/persistence';
+import * as admin from 'firebase-admin';
+
+const adapter = new FirebaseAdapter({
+    credential: admin.credential.cert(serviceAccount),
+    projectId: 'your-project-id'
+});
+
+const factory = new Factory(adapter);
+const { Account } = factory.createClasses();
+
+// Works the same as MemoryAdapter
+const account = new Account('Cash', 5000, true);
+await account.save(); // Saves to Firestore
+```
+
+### Instance Methods
+
+All persistable classes have these instance methods:
+
+```typescript
+// Save to storage (creates or updates)
+await account.save();
+
+// Delete from storage
+await account.delete();
+```
+
+### Static Methods
+
+Query and bulk operations available on all persistable classes:
+
+```typescript
+// Find by ID
+const account = await Account.findById('abc123');
+
+// Find all (with optional filters)
+const allAccounts = await Account.findAll();
+const assets = await Account.findAll({ isDebitPositive: true });
+
+// Bulk delete - returns count of deleted documents
+const deletedCount = await Account.deleteMany({ status: 'inactive' });
+
+// Bulk update - returns count of updated documents
+const updatedCount = await Account.updateMany(
+    { category: 'old' },      // filter
+    { category: 'updated' }   // data to apply
+);
+```
+
+### Creating Custom Adapters
+
+Implement the `IAdapter` interface to create adapters for any storage backend:
+
+```typescript
+import { IAdapter, IQueryFilters } from 'balance-book-js/persistence';
+
+class CustomAdapter implements IAdapter {
+    async get<T>(collection: string, id: string): Promise<T | null> {
+        // Retrieve document by ID
+    }
+
+    async save(collection: string, id: string | null, data: any): Promise<string> {
+        // Save document, return ID (generate if null)
+    }
+
+    async delete(collection: string, id: string): Promise<void> {
+        // Delete document by ID
+    }
+
+    async query<T>(collection: string, filters?: IQueryFilters): Promise<T[]> {
+        // Query documents with optional filters
+    }
+
+    async deleteMany(collection: string, filters: IQueryFilters): Promise<number> {
+        // Delete multiple documents, return count
+    }
+
+    async updateMany(collection: string, filters: IQueryFilters, data: any): Promise<number> {
+        // Update multiple documents, return count
+    }
+}
+```
+
+### Important Notes
+
+- **Bulk operations don't rehidrate**: `updateMany` and `deleteMany` return counts, not updated instances. Objects in memory are not automatically synchronized.
+- **Firebase batch limits**: The FirebaseAdapter automatically handles Firestore's 500 operations per batch limit.
+- **Firestore indexes**: Multi-field queries require composite indexes in Firebase Console.
 
 ## Error Handling
 
@@ -581,9 +687,21 @@ It's recommended to wrap calls to `.commit()` in a `try...catch` block.
 
 ## Version
 
-Current version: 1.3.0
+Current version: 2.2.0
 
-### What's New in v1.3.0
+### What's New in v2.2.0
+- **FirebaseAdapter**: Firestore integration with automatic batch handling (500 ops limit)
+- **Bulk Operations**: `deleteMany()` and `updateMany()` for efficient data manipulation
+- **Data Sanitization**: Automatic handling of undefined values while preserving Date objects
+
+### Previous Updates (v2.0.0)
+- **Persistence Layer**: Plugin-based architecture for data persistence
+- **Factory Pattern**: Generate persistable classes with `factory.createClasses()`
+- **MemoryAdapter**: Built-in in-memory storage for development and testing
+- **Query Support**: `findById()` and `findAll()` with filter support
+- **Adapter Interface**: Create custom adapters for any storage backend
+
+### Previous Updates (v1.3.0)
 - **Money Value Object**: Precise monetary calculations without floating-point errors
 - **Multi-currency support**: Automatic currency validation and conversion prevention
 - **MoneyUtils**: Utility functions for common financial operations
@@ -595,7 +713,7 @@ Current version: 1.3.0
 
 ### Previous Updates (v1.2.0)
 - Complete TypeScript migration
-- Full type definitions for all public APIs  
+- Full type definitions for all public APIs
 - Dual module support (ES Modules + CommonJS)
 - Enhanced JournalEntry with helper methods
 - Improved validation and error messages

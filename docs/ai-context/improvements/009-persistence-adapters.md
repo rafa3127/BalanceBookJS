@@ -34,7 +34,11 @@ This improvement builds upon the core persistence layer established in Improveme
    - TypeScript configuration
    - Build pipeline
 
-2. **Adapter Implementation**
+2. **Dependencies**
+   - Add `firebase-admin` to main package.json
+   - Configure build to handle optional dependencies if needed
+
+3. **Adapter Implementation**
    - Implement adapter interface
    - Firestore integration
    - Real-time subscriptions
@@ -126,8 +130,9 @@ This improvement builds upon the core persistence layer established in Improveme
 - **S3 Adapter**: File storage
 
 ## 💡 Design Decisions
-- **Separate Packages**: Adapters should be separate packages (e.g., `@balancebook/firebase`) to keep the core library lightweight and dependency-free.
+- **Internal Modules**: Adapters will be implemented as internal modules within `src/persistence/adapters/` to maintain simplicity and avoid monorepo complexity.
 - **Unified Interface**: All adapters must strictly adhere to the `IAdapter` interface defined in the core.
+- **Firestore Indexing**: Multi-field queries in Firestore require composite indices. Users must create these indices in the Firebase Console based on their query patterns.
 
 ## 🔧 Core Extension (Pre-Phase 1) - Completed
 Before implementing the adapters, the core persistence layer was extended with bulk operations:
