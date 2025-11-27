@@ -31,6 +31,23 @@ export interface IAdapter {
      * @param filters Query filters
      */
     query<T = any>(collection: string, filters?: IQueryFilters): Promise<T[]>;
+
+    /**
+     * Delete multiple documents matching filters
+     * @param collection The collection/table name
+     * @param filters Query filters
+     * @returns The number of documents deleted
+     */
+    deleteMany(collection: string, filters: IQueryFilters): Promise<number>;
+
+    /**
+     * Update multiple documents matching filters
+     * @param collection The collection/table name
+     * @param filters Query filters
+     * @param data The data to update
+     * @returns The number of documents updated
+     */
+    updateMany(collection: string, filters: IQueryFilters, data: any): Promise<number>;
 }
 
 /**
@@ -48,6 +65,8 @@ export interface IPersistableStatic<T> {
     new(...args: any[]): T;
     findById(id: string): Promise<T | null>;
     findAll(filters?: IQueryFilters): Promise<T[]>;
+    deleteMany(filters: IQueryFilters): Promise<number>;
+    updateMany(filters: IQueryFilters, data: any): Promise<number>;
     collectionName: string;
 }
 

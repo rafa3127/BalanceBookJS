@@ -89,6 +89,14 @@ export function PersistableMixin<TBase extends Constructor>(
             }));
         }
 
+        static async deleteMany(filters: IQueryFilters): Promise<number> {
+            return adapter.deleteMany(collectionName, filters);
+        }
+
+        static async updateMany(filters: IQueryFilters, data: any): Promise<number> {
+            return adapter.updateMany(collectionName, filters, data);
+        }
+
         static get collectionName() {
             return collectionName;
         }
