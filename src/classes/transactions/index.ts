@@ -4,7 +4,7 @@
  * the recording and processing of accounting entries.
  */
 
-export { default as JournalEntry } from './JournalEntry';
+export { default as JournalEntry } from './JournalEntry.ts';
 
 // Future transaction types can be added here:
 // export { default as ExpenseTransaction } from './ExpenseTransaction';

@@ -2,7 +2,7 @@
  * Core type definitions for BalanceBookJS accounts
  */
 
-import type { IMoney } from './money.types.js';
+import type { IMoney } from './money.types.ts';
 
 /**
  * Base interface for all account types

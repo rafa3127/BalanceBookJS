@@ -2,9 +2,9 @@
  * Core type definitions for BalanceBookJS transactions
  */
 
-import { IAccount } from './account.types';
-import { IMoney } from './money.types';
-import { EntryType } from '../Constants';
+import { IAccount } from './account.types.ts';
+import { IMoney } from './money.types.ts';
+import { EntryType } from '../Constants.ts';
 
 /**
  * Represents a single entry within a journal entry

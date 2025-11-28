@@ -1,4 +1,4 @@
-import { IAdapter, IQueryFilters, IPersistable } from './interfaces';
+import { IAdapter, IQueryFilters, IPersistable } from './interfaces.ts';
 
 
 type Constructor<T = {}> = new (...args: any[]) => T;
@@ -63,7 +63,11 @@ export function PersistableMixin<TBase extends Constructor>(
                 }
             }
 
+            // Bind persistence methods to the instance (in case fromData returns base class)
             instance.id = id;
+            instance.save = this.prototype.save.bind(instance);
+            instance.delete = this.prototype.delete.bind(instance);
+
             return instance as InstanceType<TBase> & IPersistable;
         }
 
@@ -84,7 +88,11 @@ export function PersistableMixin<TBase extends Constructor>(
                     }
                 }
 
+                // Bind persistence methods to the instance (in case fromData returns base class)
                 instance.id = data.id;
+                instance.save = this.prototype.save.bind(instance);
+                instance.delete = this.prototype.delete.bind(instance);
+
                 return instance as InstanceType<TBase> & IPersistable;
             }));
         }

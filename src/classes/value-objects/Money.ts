@@ -2,13 +2,13 @@
  * Money value object for precise monetary calculations
  */
 
-import { 
-  IMoney, 
-  IMoneyJSON, 
-  CurrencyCode, 
+import {
+  IMoney,
+  IMoneyJSON,
+  CurrencyCode,
   ICurrencyConfig,
-  IMoneyInternal 
-} from '../../types/money.types.js';
+  IMoneyInternal
+} from '../../types/money.types.ts';
 
 /**
  * Default currency configurations

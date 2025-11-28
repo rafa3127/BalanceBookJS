@@ -1,12 +1,12 @@
-import { IAdapter } from './interfaces';
-import { PersistableMixin } from './PersistableMixin';
-import Account from '../classes/accounts/Account';
-import Asset from '../classes/accounts/Asset';
-import Liability from '../classes/accounts/Liability';
-import Equity from '../classes/accounts/Equity';
-import Income from '../classes/accounts/Income';
-import Expense from '../classes/accounts/Expense';
-import JournalEntry from '../classes/transactions/JournalEntry';
+import { IAdapter } from './interfaces.ts';
+import { PersistableMixin } from './PersistableMixin.ts';
+import Account from '../classes/accounts/Account.ts';
+import Asset from '../classes/accounts/Asset.ts';
+import Liability from '../classes/accounts/Liability.ts';
+import Equity from '../classes/accounts/Equity.ts';
+import Income from '../classes/accounts/Income.ts';
+import Expense from '../classes/accounts/Expense.ts';
+import JournalEntry from '../classes/transactions/JournalEntry.ts';
 
 /**
  * Factory to create persistable classes bound to a specific adapter

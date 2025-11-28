@@ -1,6 +1,6 @@
 import knex, { Knex } from 'knex';
-import { IAdapter, IQueryFilters } from '../../interfaces.js';
-import { SQLConfig } from './config.js';
+import { IAdapter, IQueryFilters } from '../../interfaces.ts';
+import { SQLConfig } from './config.ts';
 
 export class SQLAdapter implements IAdapter {
     private db: Knex;

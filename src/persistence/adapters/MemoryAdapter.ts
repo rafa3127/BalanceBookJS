@@ -1,4 +1,4 @@
-import { IAdapter, IQueryFilters } from '../interfaces';
+import { IAdapter, IQueryFilters } from '../interfaces.ts';
 import { randomUUID } from 'crypto';
 
 /**

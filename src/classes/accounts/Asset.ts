@@ -1,9 +1,9 @@
 // Asset.ts
 
-import Account from './Account.js';
-import type { IAsset } from '../../types/account.types.js';
-import { Money } from '../value-objects/Money.js';
-import { AccountType } from '../../Constants.js';
+import Account from './Account.ts';
+import type { IAsset } from '../../types/account.types.ts';
+import { Money } from '../value-objects/Money.ts';
+import { AccountType } from '../../Constants.ts';
 
 /**
  * Class representing an asset account.

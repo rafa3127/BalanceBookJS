@@ -1,11 +1,11 @@
-import { Money } from './Money.js';
-import type { 
-  ICurrencyConfig, 
+import { Money } from './Money.ts';
+import type {
+  ICurrencyConfig,
   IMoneyOptions,
   ICurrencyConstructor,
-  ICurrencyFactory 
-} from '../../types/money.types.js';
-import { CURRENCY_CONFIG } from './Money.js';
+  ICurrencyFactory
+} from '../../types/money.types.ts';
+import { CURRENCY_CONFIG } from './Money.ts';
 
 /**
  * Creates a currency class and factory function dynamically.
