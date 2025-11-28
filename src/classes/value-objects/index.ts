@@ -2,11 +2,11 @@
  * Value Objects exports
  */
 
-export { Money } from './Money.js';
-export { MoneyUtils } from './MoneyUtils.js';
-export { 
-  createCurrency, 
-  createFactory, 
+export { Money } from './Money.ts';
+export { MoneyUtils } from './MoneyUtils.ts';
+export {
+  createCurrency,
+  createFactory,
   CurrencyRegistry,
   registerCurrencyConfig
-} from './CurrencyFactory.js';
+} from './CurrencyFactory.ts';

@@ -3,8 +3,8 @@
  * Provides convenient methods for common monetary calculations
  */
 
-import { Money } from './Money';
-import { CurrencyCode } from '../../types/money.types';
+import { Money } from './Money.ts';
+import { CurrencyCode } from '../../types/money.types.ts';
 
 /**
  * MoneyUtils class providing static helper methods for Money operations

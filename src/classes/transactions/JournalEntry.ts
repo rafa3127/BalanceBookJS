@@ -1,11 +1,11 @@
 // JournalEntry.ts
 
-import { IJournalEntry, IJournalEntryLine, IEntryDetail } from '../../types/transaction.types';
-import { IAccount } from '../../types/account.types';
-import { IMoney } from '../../types/money.types';
-import { EntryType, ENTRY_TYPES, ERROR_MESSAGES, VALIDATION } from '../../Constants';
+import { IJournalEntry, IJournalEntryLine, IEntryDetail } from '../../types/transaction.types.ts';
+import { IAccount } from '../../types/account.types.ts';
+import { IMoney } from '../../types/money.types.ts';
+import { EntryType, ENTRY_TYPES, ERROR_MESSAGES, VALIDATION } from '../../Constants.ts';
 
-import { ISerializable } from '../../types/serialization';
+import { ISerializable } from '../../types/serialization.ts';
 
 /**
  * Class representing a journal entry for recording double-entry bookkeeping transactions.

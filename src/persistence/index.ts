@@ -1,8 +1,8 @@
-export { Factory } from './Factory';
-export { MemoryAdapter } from './adapters/MemoryAdapter';
-export { PersistableMixin } from './PersistableMixin';
-export { FirebaseAdapter } from './adapters/firebase/FirebaseAdapter';
-export * from './adapters/firebase/config';
-export { SQLAdapter } from './adapters/sql/SQLAdapter.js';
-export * from './adapters/sql/config.js';
-export * from './interfaces.js';
+export { Factory } from './Factory.ts';
+export { MemoryAdapter } from './adapters/MemoryAdapter.ts';
+export { PersistableMixin } from './PersistableMixin.ts';
+export { FirebaseAdapter } from './adapters/firebase/FirebaseAdapter.ts';
+export * from './adapters/firebase/config.ts';
+export { SQLAdapter } from './adapters/sql/SQLAdapter.ts';
+export * from './adapters/sql/config.ts';
+export * from './interfaces.ts';

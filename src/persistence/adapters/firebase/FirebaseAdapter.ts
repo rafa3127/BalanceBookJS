@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
-import { IAdapter, IQueryFilters } from '../../interfaces';
-import { FirebaseConfig } from './config';
+import { IAdapter, IQueryFilters } from '../../interfaces.ts';
+import { FirebaseConfig } from './config.ts';
 
 export class FirebaseAdapter implements IAdapter {
     private db: admin.firestore.Firestore;

@@ -1,7 +1,7 @@
-import { ISerializable } from '../../types/serialization';
-import { IAccountInternal } from '../../types/account.types.js';
-import { Money } from '../value-objects/Money.js';
-import { ERROR_MESSAGES } from '../../Constants.js';
+import { ISerializable } from '../../types/serialization.ts';
+import { IAccountInternal } from '../../types/account.types.ts';
+import { Money } from '../value-objects/Money.ts';
+import { ERROR_MESSAGES } from '../../Constants.ts';
 
 /**
  * Class representing a generic account with Money integration.

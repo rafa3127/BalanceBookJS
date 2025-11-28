@@ -4,7 +4,8 @@
     "target": "ES2020",
     "module": "ESNext",
     "lib": ["ES2020"],
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "rewriteRelativeImportExtensions": true,
     
     // Output and structure
     "declaration": true,
@@ -36,7 +37,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "allowImportingTsExtensions": false,
+    "allowImportingTsExtensions": true,
     
     // Preserve imports/exports structure
     "preserveConstEnums": true,

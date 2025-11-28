@@ -4,25 +4,25 @@
  */
 
 // Account classes
-export { default as Account } from './classes/accounts/Account.js';
-export { default as Asset } from './classes/accounts/Asset.js';
-export { default as Liability } from './classes/accounts/Liability.js';
-export { default as Equity } from './classes/accounts/Equity.js';
-export { default as Income } from './classes/accounts/Income.js';
-export { default as Expense } from './classes/accounts/Expense.js';
+export { default as Account } from './classes/accounts/Account.ts';
+export { default as Asset } from './classes/accounts/Asset.ts';
+export { default as Liability } from './classes/accounts/Liability.ts';
+export { default as Equity } from './classes/accounts/Equity.ts';
+export { default as Income } from './classes/accounts/Income.ts';
+export { default as Expense } from './classes/accounts/Expense.ts';
 
 // Transaction classes
-export { default as JournalEntry } from './classes/transactions/JournalEntry.js';
+export { default as JournalEntry } from './classes/transactions/JournalEntry.ts';
 
 // Value Objects
-export { 
+export {
   Money,
   MoneyUtils,
   createCurrency,
   createFactory,
   CurrencyRegistry,
   registerCurrencyConfig
-} from './classes/value-objects/index.js';
+} from './classes/value-objects/index.ts';
 
 // Type exports for TypeScript consumers
 export type {
@@ -35,7 +35,7 @@ export type {
   IIncome,
   IExpense,
   AnyAccount
-} from './types/account.types.js';
+} from './types/account.types.ts';
 
 export type {
   IJournalEntry,
@@ -44,7 +44,7 @@ export type {
   JournalEntryConstructorParams,
   TransactionStatus,
   IJournalEntryWithStatus
-} from './types/transaction.types.js';
+} from './types/transaction.types.ts';
 
 export type {
   IMoney,
@@ -53,7 +53,7 @@ export type {
   IMoneyJSON,
   ICurrencyConstructor,
   ICurrencyFactory
-} from './types/money.types.js';
+} from './types/money.types.ts';
 
 // Constants and enums
 export {
@@ -63,8 +63,8 @@ export {
   ACCOUNT_BEHAVIOR,
   VALIDATION,
   ERROR_MESSAGES
-} from './Constants.js';
+} from './Constants.ts';
 
 // Re-export everything from the convenience modules
-export * from './classes/accounts/index.js';
-export * from './classes/transactions/index.js';
+export * from './classes/accounts/index.ts';
+export * from './classes/transactions/index.ts';
