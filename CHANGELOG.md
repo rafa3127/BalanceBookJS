@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.1](https://github.com/rafa3127/BalanceBookJS/compare/v2.2.0...v2.2.1) (2025-11-28)
+
+
+### Bug Fixes
+
+* **compile and persistance:** fix issue with extensions and fix persistance find methods ([42e4aae](https://github.com/rafa3127/BalanceBookJS/commit/42e4aae9387a1abab76391ac11c885ac3fe53e76))
+
 ## [2.2.0](https://github.com/rafa3127/BalanceBookJS/compare/v2.1.0...v2.2.0) (2025-11-27)
 
 
