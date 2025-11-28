@@ -573,12 +573,23 @@ For Firebase/Firestore backends (requires `firebase-admin` peer dependency):
 
 ```typescript
 import { FirebaseAdapter } from 'balance-book-js/persistence';
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 
+// Option 1: Pass configuration (adapter initializes Firebase internally)
 const adapter = new FirebaseAdapter({
     credential: admin.credential.cert(serviceAccount),
     projectId: 'your-project-id'
 });
+
+// Option 2: Dependency Injection - Pass an already initialized Firestore instance
+// This is recommended when you need more control over Firebase initialization
+// or when integrating with existing Firebase setups
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    projectId: 'your-project-id'
+});
+const firestore = admin.firestore();
+const adapter = new FirebaseAdapter(firestore);
 
 const factory = new Factory(adapter);
 const { Account } = factory.createClasses();
@@ -587,6 +598,12 @@ const { Account } = factory.createClasses();
 const account = new Account('Cash', 5000, true);
 await account.save(); // Saves to Firestore
 ```
+
+**Why use dependency injection?**
+- Better control over Firebase initialization options
+- Easier integration with existing Firebase setups in your application
+- Avoids potential module resolution issues in complex build environments
+- Simplifies testing with mock Firestore instances
 
 #### SQLAdapter
 For SQL databases using Knex.js (requires `knex` peer dependency + database driver):

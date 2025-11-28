@@ -192,6 +192,7 @@ class Account implements IAccountInternal, ISerializable {
     public serialize(): any {
         return {
             name: this.name,
+            type: (this as any).type || 'ACCOUNT',
             balance: this.balanceMoney.toJSON(),
             isDebitPositive: this.isDebitPositive,
             initialMode: this.initialMode,

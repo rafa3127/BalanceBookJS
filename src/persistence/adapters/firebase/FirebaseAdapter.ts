@@ -1,20 +1,38 @@
-import * as admin from 'firebase-admin';
 import { IAdapter, IQueryFilters } from '../../interfaces.ts';
 import { FirebaseConfig } from './config.ts';
 
-export class FirebaseAdapter implements IAdapter {
-    private db: admin.firestore.Firestore;
+// Use dynamic import type for Firestore to avoid import issues
+type Firestore = import('firebase-admin').firestore.Firestore;
+type Query = import('firebase-admin').firestore.Query;
+type QueryDocumentSnapshot = import('firebase-admin').firestore.QueryDocumentSnapshot;
 
-    constructor(config: FirebaseConfig) {
-        if (!admin.apps.length) {
-            admin.initializeApp({
-                credential: config.credential,
-                projectId: config.projectId,
-                databaseURL: config.databaseURL,
-                storageBucket: config.storageBucket
-            });
+export class FirebaseAdapter implements IAdapter {
+    private db: Firestore;
+
+    /**
+     * Create a FirebaseAdapter
+     * @param configOrFirestore - Either a FirebaseConfig object or an already initialized Firestore instance
+     */
+    constructor(configOrFirestore: FirebaseConfig | Firestore) {
+        // Check if it's a Firestore instance (has collection method)
+        if (configOrFirestore && typeof (configOrFirestore as any).collection === 'function') {
+            this.db = configOrFirestore as Firestore;
+        } else {
+            // Legacy: initialize from config
+            const config = configOrFirestore as FirebaseConfig;
+            // Dynamic import to avoid module issues
+            const admin = require('firebase-admin');
+            const apps = admin.apps ?? [];
+            if (!apps.length) {
+                admin.initializeApp({
+                    credential: config.credential,
+                    projectId: config.projectId,
+                    databaseURL: config.databaseURL,
+                    storageBucket: config.storageBucket
+                });
+            }
+            this.db = admin.firestore();
         }
-        this.db = admin.firestore();
     }
 
     async get<T = any>(collection: string, id: string): Promise<T | null> {
@@ -40,7 +58,7 @@ export class FirebaseAdapter implements IAdapter {
     }
 
     async query<T = any>(collection: string, filters?: IQueryFilters): Promise<T[]> {
-        let query: admin.firestore.Query = this.db.collection(collection);
+        let query: Query = this.db.collection(collection);
 
         if (filters) {
             Object.entries(filters).forEach(([key, value]) => {
@@ -49,7 +67,7 @@ export class FirebaseAdapter implements IAdapter {
         }
 
         const snapshot = await query.get();
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+        return snapshot.docs.map((doc: QueryDocumentSnapshot) => ({ id: doc.id, ...doc.data() } as T));
     }
 
     async deleteMany(collection: string, filters: IQueryFilters): Promise<number> {
