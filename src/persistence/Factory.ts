@@ -7,6 +7,18 @@ import Equity from '../classes/accounts/Equity.ts';
 import Income from '../classes/accounts/Income.ts';
 import Expense from '../classes/accounts/Expense.ts';
 import JournalEntry from '../classes/transactions/JournalEntry.ts';
+import { Money } from '../classes/value-objects/Money.ts';
+
+// Map of stored type to account class
+// Using 'any' for constructor type since subclasses have different signatures
+const accountTypeMap: Record<string, new (name: string, initialBalance?: number | Money, defaultCurrency?: string) => Account> = {
+    'ASSET': Asset,
+    'LIABILITY': Liability,
+    'EQUITY': Equity,
+    'INCOME': Income,
+    'EXPENSE': Expense,
+    'ACCOUNT': Account as any,
+};
 
 /**
  * Factory to create persistable classes bound to a specific adapter
@@ -30,6 +42,47 @@ export class Factory {
             Income: this.createPersistable(Income, 'accounts'),
             Expense: this.createPersistable(Expense, 'accounts'),
             JournalEntry: this.createPersistable(JournalEntry, 'journal_entries'),
+        };
+
+        // Override Account.fromData to return the correct subclass based on stored type
+        (classes.Account as any).fromData = function(data: any) {
+            const storedType = data.type || 'ACCOUNT';
+            const AccountClass = accountTypeMap[storedType] || Account;
+
+            let initialBalance: number | Money = 0;
+            if (data.balance) {
+                if (data.initialMode === 'number') {
+                    initialBalance = data.balance.amount;
+                } else {
+                    initialBalance = new Money(
+                        data.balance.amount,
+                        data.balance.currency || data.currency
+                    );
+                }
+            }
+
+            const currency = data.currency || 'CURR';
+
+            // Account base class has different constructor signature than subclasses
+            // Account: (name, balance, isDebitPositive, currency)
+            // Subclasses: (name, balance, currency)
+            let account;
+            if (storedType === 'ACCOUNT') {
+                account = new (AccountClass as any)(
+                    data.name,
+                    initialBalance,
+                    data.isDebitPositive,
+                    currency
+                );
+            } else {
+                account = new (AccountClass as any)(
+                    data.name,
+                    initialBalance,
+                    currency
+                );
+            }
+
+            return account;
         };
 
         // Inject Account model into JournalEntry for hydration
