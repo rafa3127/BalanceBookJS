@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.3.0](https://github.com/rafa3127/BalanceBookJS/compare/v2.2.1...v2.3.0) (2025-12-01)
+
+
+### Features
+
+* **persistence:** add dependency injection support for FirebaseAdapter ([52f03c7](https://github.com/rafa3127/BalanceBookJS/commit/52f03c7a8eddd7f5abaee01f375c378e2f7db022))
+
+
+### Bug Fixes
+
+* **persistance:** fix issues in query filters support ([66070c5](https://github.com/rafa3127/BalanceBookJS/commit/66070c5aadf1c4408387f1e3536722fd7b58d2d6))
+
 ## [2.2.1](https://github.com/rafa3127/BalanceBookJS/compare/v2.2.0...v2.2.1) (2025-11-28)
 
 
