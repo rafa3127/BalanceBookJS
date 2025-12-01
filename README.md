@@ -13,7 +13,8 @@ BalanceBookJS is a TypeScript/JavaScript library that provides an object-oriente
 * Automatic balance calculation based on debit and credit entries.
 * Enforces double-entry bookkeeping principles in Journal Entries (debits must equal credits).
 * **Persistence Layer**: Plugin-based architecture with adapters for different storage backends.
-* **Built-in Adapters**: MemoryAdapter (testing), FirebaseAdapter (Firestore), and SQLAdapter (PostgreSQL, MySQL, SQLite, etc.).
+* **Built-in Adapters**: MemoryAdapter (testing) and FirebaseAdapter (Firestore).
+* **Advanced Query Filters**: Flexible `IQueryFilters` interface with operators (`==`, `!=`, `>`, `>=`, `<`, `<=`, `in`, `not-in`, `contains`, `startsWith`, `endsWith`, `includes`), sorting (`$orderBy`), and pagination (`$limit`, `$offset`).
 * **Bulk Operations**: Efficient `deleteMany()` and `updateMany()` for batch data manipulation.
 * **Full TypeScript support** with comprehensive type definitions.
 * **Dual module system**: Works with both ES Modules and CommonJS.
@@ -573,12 +574,23 @@ For Firebase/Firestore backends (requires `firebase-admin` peer dependency):
 
 ```typescript
 import { FirebaseAdapter } from 'balance-book-js/persistence';
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 
+// Option 1: Pass configuration (adapter initializes Firebase internally)
 const adapter = new FirebaseAdapter({
     credential: admin.credential.cert(serviceAccount),
     projectId: 'your-project-id'
 });
+
+// Option 2: Dependency Injection - Pass an already initialized Firestore instance
+// This is recommended when you need more control over Firebase initialization
+// or when integrating with existing Firebase setups
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    projectId: 'your-project-id'
+});
+const firestore = admin.firestore();
+const adapter = new FirebaseAdapter(firestore);
 
 const factory = new Factory(adapter);
 const { Account } = factory.createClasses();
@@ -588,52 +600,19 @@ const account = new Account('Cash', 5000, true);
 await account.save(); // Saves to Firestore
 ```
 
-#### SQLAdapter
-For SQL databases using Knex.js (requires `knex` peer dependency + database driver):
+**Why use dependency injection?**
+- Better control over Firebase initialization options
+- Easier integration with existing Firebase setups in your application
+- Avoids potential module resolution issues in complex build environments
+- Simplifies testing with mock Firestore instances
 
-```typescript
-import { SQLAdapter } from 'balance-book-js/persistence';
+#### SQLAdapter (Temporarily Disabled)
 
-// PostgreSQL example
-const adapter = new SQLAdapter({
-    client: 'pg',
-    connection: {
-        host: 'localhost',
-        user: 'your_user',
-        password: 'your_password',
-        database: 'your_db'
-    }
-});
-
-// SQLite example
-const sqliteAdapter = new SQLAdapter({
-    client: 'sqlite3',
-    connection: { filename: './mydb.sqlite' },
-    useNullAsDefault: true
-});
-
-// MySQL example
-const mysqlAdapter = new SQLAdapter({
-    client: 'mysql2',
-    connection: {
-        host: 'localhost',
-        user: 'root',
-        password: 'password',
-        database: 'myapp'
-    }
-});
-
-const factory = new Factory(adapter);
-const { Account } = factory.createClasses();
-
-// Works the same as other adapters
-const account = new Account('Cash', 5000, true);
-await account.save(); // Saves to SQL database
-```
-
-**Supported SQL Dialects**: PostgreSQL, MySQL, SQLite, MSSQL, Oracle (any dialect supported by Knex.js)
-
-> **Note**: You must create your database tables/schema before using the SQLAdapter. The adapter does not auto-generate schemas.
+> ⚠️ **Note**: The SQLAdapter is temporarily disabled in v2.3.0 pending a redesign with a proper relational schema. The current implementation stores `JournalEntry.entries` as serialized JSON, which prevents efficient queries like "find all transactions involving account X".
+>
+> See [008-sql-adapter-relational-schema.md](docs/ai-context/improvements/008-sql-adapter-relational-schema.md) for the planned relational schema design with separate `journal_entry_lines` table that will enable proper SQL JOINs and indexed queries.
+>
+> **Available adapters**: Use `MemoryAdapter` for testing/development or `FirebaseAdapter` for production with Firestore.
 
 ### Instance Methods
 
@@ -655,9 +634,21 @@ Query and bulk operations available on all persistable classes:
 // Find by ID
 const account = await Account.findById('abc123');
 
-// Find all (with optional filters)
+// Find all (with optional simple filters)
 const allAccounts = await Account.findAll();
 const assets = await Account.findAll({ isDebitPositive: true });
+
+// Advanced query filters with IQueryFilters
+const filtered = await Account.findAll({
+    $where: [
+        { field: 'type', operator: '==', value: 'ASSET' },
+        { field: 'name', operator: 'startsWith', value: 'Cash' },
+        { field: 'balance.amount', operator: '>=', value: 1000 }
+    ],
+    $orderBy: { field: 'name', direction: 'asc' },
+    $limit: 10,
+    $offset: 0
+});
 
 // Bulk delete - returns count of deleted documents
 const deletedCount = await Account.deleteMany({ status: 'inactive' });
@@ -703,12 +694,60 @@ class CustomAdapter implements IAdapter {
 }
 ```
 
+### Advanced Query Filters
+
+The `IQueryFilters` interface provides powerful querying capabilities:
+
+```typescript
+interface IQueryFilters {
+    $where?: IWhereCondition[];  // Array of filter conditions
+    $orderBy?: IOrderBy;         // Sorting configuration
+    $limit?: number;             // Maximum results to return
+    $offset?: number;            // Skip N results (pagination)
+    [key: string]: any;          // Simple equality filters (backward compatible)
+}
+
+interface IWhereCondition {
+    field: string;               // Field path (supports dot notation: 'balance.amount')
+    operator: QueryOperator;     // Comparison operator
+    value: any;                  // Value to compare against
+}
+
+// Available operators:
+// '==' | '!=' | '>' | '>=' | '<' | '<='  - Comparison
+// 'in' | 'not-in'                         - Array membership
+// 'contains'                              - Array contains value
+// 'startsWith' | 'endsWith' | 'includes'  - String operations
+```
+
+**Example - Date Range Query:**
+```typescript
+const novemberTransactions = await JournalEntry.findAll({
+    $where: [
+        { field: 'date', operator: '>=', value: new Date('2024-11-01') },
+        { field: 'date', operator: '<=', value: new Date('2024-11-30') }
+    ],
+    $orderBy: { field: 'date', direction: 'desc' },
+    $limit: 50
+});
+```
+
+**Example - String Search:**
+```typescript
+const cashAccounts = await Account.findAll({
+    $where: [
+        { field: 'name', operator: 'includes', value: 'Cash' },
+        { field: 'type', operator: '==', value: 'ASSET' }
+    ]
+});
+```
+
 ### Important Notes
 
-- **Bulk operations don't rehidrate**: `updateMany` and `deleteMany` return counts, not updated instances. Objects in memory are not automatically synchronized.
+- **Bulk operations don't rehydrate**: `updateMany` and `deleteMany` return counts, not updated instances. Objects in memory are not automatically synchronized.
 - **Firebase batch limits**: The FirebaseAdapter automatically handles Firestore's 500 operations per batch limit.
-- **Firestore indexes**: Multi-field queries require composite indexes in Firebase Console.
-- **SQL compatibility**: SQLAdapter is tested with PostgreSQL and SQLite. MySQL support requires manual ID handling as `.returning()` is not fully supported.
+- **Firestore indexes**: Multi-field queries with `$orderBy` may require composite indexes. Create them in Firebase Console or via `firestore.indexes.json`.
+- **In-memory filtering**: Some operators (`endsWith`, `includes`) are filtered in memory after fetching from Firestore, as they're not natively supported. The adapter uses iterative pagination to guarantee the requested `$limit` is satisfied.
 
 ## Error Handling
 
@@ -735,9 +774,16 @@ It's recommended to wrap calls to `.commit()` in a `try...catch` block.
 
 ## Version
 
-Current version: 2.2.0
+Current version: 2.3.0
 
-### What's New in v2.2.0
+### What's New in v2.3.0
+- **Advanced Query Filters**: New `IQueryFilters` interface with operators (`==`, `!=`, `>`, `>=`, `<`, `<=`, `in`, `not-in`, `contains`, `startsWith`, `endsWith`, `includes`), sorting (`$orderBy`), and pagination (`$limit`, `$offset`)
+- **Dot Notation Support**: Query nested fields like `balance.amount`
+- **Iterative Pagination**: FirebaseAdapter guarantees `$limit` results even with in-memory filters
+- **Timestamp Conversion**: Automatic conversion of Firestore Timestamps to JavaScript Dates
+- **SQLAdapter Deprecated**: Temporarily disabled pending redesign with proper relational schema (see IMPROVEMENTS.md)
+
+### Previous Updates (v2.2.0)
 - **FirebaseAdapter**: Firestore integration with automatic batch handling (500 ops limit)
 - **SQLAdapter**: SQL database support via Knex.js (PostgreSQL, MySQL, SQLite, MSSQL, Oracle)
 - **Bulk Operations**: `deleteMany()` and `updateMany()` for efficient data manipulation
