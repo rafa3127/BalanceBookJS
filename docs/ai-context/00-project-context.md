@@ -1,7 +1,7 @@
 # Project Context: BalanceBookJS
 
 ## 🎯 AI Assistant Instructions
-You are working on BalanceBookJS, a JavaScript library implementing double-entry bookkeeping principles. Read this document completely before proceeding with any tasks.
+You are working on BalanceBookJS, a TypeScript/JavaScript library implementing double-entry bookkeeping principles. Read this document completely before proceeding with any tasks.
 
 ## 📚 Essential Reading Order
 1. **This file** (00-project-context.md)
@@ -13,45 +13,62 @@ You are working on BalanceBookJS, a JavaScript library implementing double-entry
 
 ```
 BalanceBookJS/
-├── src/                          # Source code
-│   ├── index.js                 # Main entry point and exports
-│   ├── Constants.js             # Project constants (currently empty)
-│   └── classes/                 # Core classes
-│       ├── accounts/            # Account-related classes
-│       │   ├── Account.js       # Base account class
-│       │   ├── Asset.js         # Asset account (debit positive)
-│       │   ├── Liability.js     # Liability account (credit positive)
-│       │   ├── Equity.js        # Equity account (credit positive)
-│       │   ├── Income.js        # Income account (credit positive)
-│       │   └── Expense.js       # Expense account (debit positive)
-│       └── transactions/        # Transaction-related classes
-│           └── JournalEntry.js  # Journal entry implementation
-├── lib/                         # Built/compiled output
-├── tests/                       # Test files
+├── src/                          # Source code (TypeScript)
+│   ├── index.ts                 # Main entry point and exports
+│   ├── Constants.ts             # Project constants
+│   ├── classes/                 # Core classes
+│   │   ├── accounts/            # Account-related classes
+│   │   │   ├── Account.ts       # Base account class (with Money integration)
+│   │   │   ├── Asset.ts         # Asset account (debit positive)
+│   │   │   ├── Liability.ts     # Liability account (credit positive)
+│   │   │   ├── Equity.ts        # Equity account (credit positive)
+│   │   │   ├── Income.ts        # Income account (credit positive)
+│   │   │   └── Expense.ts       # Expense account (debit positive)
+│   │   ├── transactions/        # Transaction-related classes
+│   │   │   └── JournalEntry.ts  # Journal entry implementation
+│   │   └── value-objects/       # Immutable value objects
+│   │       ├── Money.ts         # Precision-safe money (BigInt)
+│   │       ├── MoneyUtils.ts    # Money operations
+│   │       └── CurrencyFactory.ts # Currency creation
+│   ├── persistence/             # Persistence Layer (opt-in)
+│   │   ├── interfaces.ts        # IAdapter, IQueryFilters interfaces
+│   │   ├── Factory.ts           # Class factory for persistable classes
+│   │   ├── PersistableMixin.ts  # Mixin adding save/delete/find methods
+│   │   └── adapters/            # Storage adapters
+│   │       ├── memory/          # MemoryAdapter (testing)
+│   │       ├── firebase/        # FirebaseAdapter (Firestore)
+│   │       └── sql/             # SQLAdapter (disabled in v2.3.0)
+│   └── types/                   # TypeScript type definitions
+├── lib/                         # Built/compiled output (ES Modules + CommonJS)
+├── tests/                       # Test files (TypeScript)
 ├── docs/                        # Documentation
-│   └── ai-context/             # AI-specific documentation
+│   ├── ai-context/             # AI-specific documentation
+│   └── migration_guides/       # Optional feature adoption guides
 └── package.json                # Node.js configuration
 ```
 
 ## 🔧 Technical Stack
-- **Language**: JavaScript (ES6+ Modules)
+- **Language**: TypeScript (compiles to JavaScript)
 - **Node Version**: LTS (>= 18.x recommended)
-- **Module System**: ES Modules (`"type": "module"` in package.json)
-- **Testing**: Jest with experimental VM modules
-- **Build Tool**: Webpack with Babel
+- **Module System**: ES Modules + CommonJS (dual build)
+- **Testing**: Jest with ts-jest
+- **Build Tool**: Pure TypeScript compilation (tsc) - no bundlers
 - **Package Manager**: npm
-- **Version**: 1.1.0
+- **Type Checking**: Strict mode enabled
+- **Version**: 2.3.0
 
 ## 📦 Core Dependencies
-- No runtime dependencies (pure JavaScript)
-- Dev dependencies: Babel, Jest, Webpack
+- No runtime dependencies (pure TypeScript/JavaScript)
+- Dev dependencies: TypeScript, Jest, ts-jest
+- Optional peer dependencies: firebase-admin (for FirebaseAdapter), knex (for SQLAdapter)
 
 ## 🎨 Design Principles
 1. **Double-Entry Bookkeeping**: Every transaction must balance (debits = credits)
 2. **Object-Oriented Design**: Clear class hierarchy with inheritance
-3. **No External Dependencies**: Keep the library lightweight
+3. **No External Dependencies**: Keep the library lightweight (only dev/peer dependencies)
 4. **Immutable Transactions**: Once committed, journal entries shouldn't change
-5. **Type Safety**: Moving towards TypeScript for better type checking
+5. **Type Safety**: Full TypeScript with strict mode enabled
+6. **Backward Compatibility**: New features are opt-in, existing API preserved
 
 ## 📝 Commit Convention (IMPORTANT)
 Follow Conventional Commits format strictly:
@@ -80,11 +97,14 @@ npm install
 # Run tests
 npm test
 
-# Build library
+# Build library (ES Modules + CommonJS)
 npm run build
 
-# Start development
-npm start
+# Type check without building
+npm run type-check
+
+# Watch mode for development
+npm run watch
 ```
 
 ## 📊 Accounting Domain Knowledge
@@ -116,10 +136,44 @@ Key concepts the AI should understand:
 - **Money Implementation**: `/src/classes/value-objects/Money.ts`
 - **Money Utilities**: `/src/classes/value-objects/MoneyUtils.ts`
 - **Currency Factory**: `/src/classes/value-objects/CurrencyFactory.ts`
+- **Persistence Layer**: `/src/persistence/` directory
+- **Adapters**: `/src/persistence/adapters/` (memory, firebase, sql)
 - **Type Definitions**: `/src/types/` directory (TypeScript)
 - **Tests**: `/tests/` directory
 - **Built Output**: `/lib/` directory
 - **Improvement Plans**: `/docs/ai-context/improvements/`
+- **Completed Improvements**: `/docs/ai-context/completed/`
+
+## 🗄️ Persistence Layer (Opt-in Feature)
+The library includes a flexible persistence layer using adapters:
+
+### Available Adapters
+| Adapter | Status | Use Case |
+|---------|--------|----------|
+| MemoryAdapter | ✅ Ready | Testing, development |
+| FirebaseAdapter | ✅ Ready | Production with Firestore |
+| SQLAdapter | ⚠️ Disabled (v2.3.0) | Pending relational schema redesign |
+| MongoDBAdapter | 📋 Planned | Future release |
+
+### Basic Usage
+```typescript
+import { Factory, MemoryAdapter } from 'balance-book-js/persistence';
+
+const adapter = new MemoryAdapter();
+const factory = new Factory(adapter);
+const { Account, JournalEntry } = factory.createClasses();
+
+// Now classes have persistence methods
+const account = new Account('Cash', 1000, true);
+await account.save();
+
+const found = await Account.findById(account.id);
+```
+
+### Key Patterns
+- **Factory Pattern**: Generates persistable classes from base classes
+- **Mixin Pattern**: Adds `save()`, `delete()`, `findById()`, `findAll()` methods
+- **Adapter Interface**: `IAdapter` with `get`, `save`, `delete`, `query`, `deleteMany`, `updateMany`
 
 ## 💡 Development Philosophy
 - Prefer composition over deep inheritance where possible

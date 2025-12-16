@@ -65,7 +65,7 @@ const PersistableAccount = PersistableMixin(Account, adapter, 'accounts');
 
 ```
 src/
-├── index.js                    # Public API exports
+├── index.ts                    # Public API exports
 ├── types/                      # TypeScript type definitions
 │   ├── account.types.ts       # Account interfaces
 │   ├── money.types.ts         # Money & currency types
@@ -79,13 +79,15 @@ src/
 │   └── value-objects/         # Immutable value objects
 │       ├── Money.ts           # Precision-safe money
 │       ├── MoneyUtils.ts      # Money operations
-│       ├── MoneyUtils.ts      # Money operations
 │       └── CurrencyFactory.ts # Currency creation
-├── persistence/               # Persistence Layer
-│   ├── adapters/              # Storage adapters
-│   ├── interfaces.ts          # Core interfaces
-│   ├── Factory.ts             # Class factory
-│   └── PersistableMixin.ts    # Persistence logic
+├── persistence/               # Persistence Layer (opt-in)
+│   ├── interfaces.ts          # IAdapter, IQueryFilters, IWhereCondition
+│   ├── Factory.ts             # Generates persistable classes
+│   ├── PersistableMixin.ts    # Adds save/delete/find methods
+│   └── adapters/              # Storage adapters
+│       ├── memory/            # MemoryAdapter (testing)
+│       ├── firebase/          # FirebaseAdapter (production ready)
+│       └── sql/               # SQLAdapter (disabled v2.3.0)
 └── Constants.ts               # Shared constants
 
 docs/
@@ -156,21 +158,23 @@ Current approach:
 ### Current State
 - **Local State**: Each account maintains its own balance
 - **No Global State**: No centralized ledger or store
-- **Local State**: Each account maintains its own balance
-- **No Global State**: No centralized ledger or store
-- **Persistence**: Supported via `persistence` module (opt-in)
+- **Persistence**: ✅ Supported via `persistence` module (opt-in)
+  - Factory pattern generates persistable classes
+  - Adapters: MemoryAdapter, FirebaseAdapter, SQLAdapter (disabled)
+  - Methods: `save()`, `delete()`, `findById()`, `findAll()`, `deleteMany()`, `updateMany()`
 
-### Missing Concepts
-- General Ledger (central record)
+### Planned Improvements
+- General Ledger (central record) - see `003-general-ledger.md`
 - Chart of Accounts (account registry)
-- Accounting Periods
+- Accounting Periods - see `006-accounting-periods.md`
 - Transaction History/Audit Trail
 
 ## 🧪 Testing Strategy
 
 ### Current Coverage
 - Basic unit tests for core functionality
-- Test files follow pattern: `[ClassName].test.js`
+- Test files follow pattern: `[ClassName].test.ts`
+- Persistence layer tests in `/tests/persistence/`
 
 ### Testing Patterns
 ```javascript
@@ -217,8 +221,8 @@ When implementing improvements:
 - **S**ingle Responsibility: Each class has one reason to change
 - **O**pen/Closed: Open for extension (inheritance), closed for modification
 - **L**iskov Substitution: Subclasses can replace base class
-- **I**nterface Segregation: Not yet applicable (no interfaces)
-- **D**ependency Inversion: Not yet implemented
+- **I**nterface Segregation: ✅ Applied in persistence layer (`IAdapter`, `IQueryFilters`)
+- **D**ependency Inversion: ✅ Applied in persistence layer (adapters injected via Factory)
 
 ### Domain-Driven Design
 - **Entities**: Account (has identity via name)
@@ -231,20 +235,25 @@ When implementing improvements:
 
 ## 🎨 Code Style Rules
 
-### JavaScript Specific
-```javascript
-// Use ES6+ features
-import Account from './Account.js';  // ES modules
-export default Account;               // Default exports
+### TypeScript Specific
+```typescript
+// Use ES6+ features with TypeScript
+import { Account } from './Account.ts';  // ES modules
+export { Account };                       // Named exports preferred
 
 // Prefer const/let over var
-const account = new Account();
+const account = new Account('Cash', 0, true);
 
 // Use arrow functions for callbacks
 entries.filter(e => e.type === 'debit');
 
 // Destructuring when appropriate
 const { name, balance } = account;
+
+// Type annotations
+function processAccount(account: Account): Money {
+    return account.getBalanceAsMoney();
+}
 ```
 
 ### Method Structure

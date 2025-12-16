@@ -22,7 +22,13 @@ Welcome! You are working on **BalanceBookJS**, a TypeScript/JavaScript library i
 ├── 📄 index.ts                     # Main exports
 ├── 📁 classes/
 │   ├── 📁 accounts/                 # Account classes (Account, Asset, Liability, etc.)
-│   └── 📁 transactions/             # Transaction classes (JournalEntry)
+│   ├── 📁 transactions/             # Transaction classes (JournalEntry)
+│   └── 📁 value-objects/            # Money, MoneyUtils, CurrencyFactory
+├── 📁 persistence/                  # Persistence Layer (opt-in)
+│   ├── 📄 interfaces.ts            # IAdapter, IQueryFilters
+│   ├── 📄 Factory.ts               # Generates persistable classes
+│   ├── 📄 PersistableMixin.ts      # Adds save/delete/find methods
+│   └── 📁 adapters/                 # MemoryAdapter, FirebaseAdapter, SQLAdapter
 ├── 📁 types/                        # TypeScript type definitions
 │   ├── 📄 account.types.ts         # Account interfaces
 │   ├── 📄 transaction.types.ts     # Transaction interfaces
@@ -33,16 +39,20 @@ Welcome! You are working on **BalanceBookJS**, a TypeScript/JavaScript library i
 ### 3️⃣ **Improvements & Features**
 ```
 📁 /docs/ai-context/
-├── 📁 improvements/                 # Fully documented improvements
+├── 📁 improvements/                 # Pending improvements
 │   ├── 📄 _template.md             # Template for new improvements
-│   ├── 📄 001-typescript-migration.md ✅ COMPLETED
-│   ├── 📄 002-money-value-object.md ✅ COMPLETED
 │   ├── 📄 003-general-ledger.md
 │   ├── 📄 004-financial-reports.md
 │   ├── 📄 005-multi-currency.md
 │   ├── 📄 006-accounting-periods.md
-│   └── 📄 007-validation-business-rules.md
+│   ├── 📄 007-validation-business-rules.md
+│   ├── 📄 008-sql-adapter-relational-schema.md  # SQLAdapter redesign
+│   └── 📄 009-mongodb-adapter.md                # MongoDB support
 ├── 📁 completed/                    # Completed improvements
+│   ├── 📄 001-typescript-migration.md ✅
+│   ├── 📄 002-money-value-object.md ✅
+│   ├── 📄 008-persistence-layer.md ✅
+│   └── 📄 009-persistence-adapters.md ✅
 └── 📄 improvement-ideas-backlog.md # 100+ undeveloped ideas
 ```
 
@@ -69,7 +79,11 @@ Welcome! You are working on **BalanceBookJS**, a TypeScript/JavaScript library i
 📁 /tests/                           # Test files (TypeScript)
 ├── 📄 Account.test.ts              # Account class tests
 ├── 📄 AccountSubclasses.test.ts   # Asset, Liability, etc. tests
-└── 📄 JournalEntry.test.ts        # JournalEntry tests
+├── 📄 JournalEntry.test.ts        # JournalEntry tests
+└── 📁 persistence/                  # Persistence layer tests
+    ├── 📄 Factory.test.ts
+    ├── 📄 MemoryAdapter.test.ts
+    └── 📄 BulkOperations.test.ts
 ```
 
 ## 🎯 Common Tasks & Where to Go
@@ -95,6 +109,13 @@ Welcome! You are working on **BalanceBookJS**, a TypeScript/JavaScript library i
 2. Review `/src/types/` for TypeScript interfaces
 3. Review `/src/classes/accounts/Account.ts` for base logic
 4. Review `/src/classes/transactions/JournalEntry.ts` for transactions
+5. Review `/src/persistence/` for persistence layer
+
+### "I need to work with persistence"
+1. Read `/docs/ai-context/completed/008-persistence-layer.md` for architecture
+2. Read `/docs/ai-context/completed/009-persistence-adapters.md` for adapters
+3. Review `/src/persistence/interfaces.ts` for `IAdapter` interface
+4. Check adapter status: MemoryAdapter ✅, FirebaseAdapter ✅, SQLAdapter ⚠️ (disabled)
 
 ### "I need to create a Pull Request"
 1. Read `/CONTRIBUTING.md` for commit conventions
@@ -191,6 +212,15 @@ This project uses **prompt-oriented documentation**:
 5. **Test everything**: Include comprehensive test cases
 
 ## 🎉 Recent Updates
+
+### Persistence Layer (v2.3.0 - 2025)
+- ✅ Factory pattern for generating persistable classes
+- ✅ Mixin pattern for adding save/delete/find methods
+- ✅ MemoryAdapter for testing
+- ✅ FirebaseAdapter for Firestore production use
+- ✅ Bulk operations: `deleteMany()`, `updateMany()`
+- ⚠️ SQLAdapter disabled pending relational schema redesign
+- 📋 MongoDBAdapter planned
 
 ### TypeScript Migration (January 2025)
 - ✅ Entire codebase migrated to TypeScript
