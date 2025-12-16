@@ -87,6 +87,7 @@ src/
 │   └── adapters/              # Storage adapters
 │       ├── memory/            # MemoryAdapter (testing)
 │       ├── firebase/          # FirebaseAdapter (production ready)
+│       ├── mongodb/           # MongoDBAdapter (production ready)
 │       └── sql/               # SQLAdapter (disabled v2.3.0)
 └── Constants.ts               # Shared constants
 
@@ -160,7 +161,7 @@ Current approach:
 - **No Global State**: No centralized ledger or store
 - **Persistence**: ✅ Supported via `persistence` module (opt-in)
   - Factory pattern generates persistable classes
-  - Adapters: MemoryAdapter, FirebaseAdapter, SQLAdapter (disabled)
+  - Adapters: MemoryAdapter, FirebaseAdapter, MongoDBAdapter, SQLAdapter (disabled)
   - Methods: `save()`, `delete()`, `findById()`, `findAll()`, `deleteMany()`, `updateMany()`
 
 ### Planned Improvements

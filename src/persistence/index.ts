@@ -3,6 +3,8 @@ export { MemoryAdapter } from './adapters/MemoryAdapter.ts';
 export { PersistableMixin } from './PersistableMixin.ts';
 export { FirebaseAdapter } from './adapters/firebase/FirebaseAdapter.ts';
 export * from './adapters/firebase/config.ts';
+export { MongoDBAdapter } from './adapters/mongodb/MongoDBAdapter.ts';
+export * from './adapters/mongodb/config.ts';
 
 // SQLAdapter is temporarily disabled pending a redesign with proper relational schema.
 // The current implementation stores JournalEntry.entries as serialized JSON which prevents

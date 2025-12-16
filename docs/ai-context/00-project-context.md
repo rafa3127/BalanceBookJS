@@ -37,6 +37,7 @@ BalanceBookJS/
 │   │   └── adapters/            # Storage adapters
 │   │       ├── memory/          # MemoryAdapter (testing)
 │   │       ├── firebase/        # FirebaseAdapter (Firestore)
+│   │       ├── mongodb/         # MongoDBAdapter (MongoDB)
 │   │       └── sql/             # SQLAdapter (disabled in v2.3.0)
 │   └── types/                   # TypeScript type definitions
 ├── lib/                         # Built/compiled output (ES Modules + CommonJS)
@@ -60,7 +61,7 @@ BalanceBookJS/
 ## 📦 Core Dependencies
 - No runtime dependencies (pure TypeScript/JavaScript)
 - Dev dependencies: TypeScript, Jest, ts-jest
-- Optional peer dependencies: firebase-admin (for FirebaseAdapter), knex (for SQLAdapter)
+- Optional peer dependencies: firebase-admin (for FirebaseAdapter), mongodb (for MongoDBAdapter), knex (for SQLAdapter)
 
 ## 🎨 Design Principles
 1. **Double-Entry Bookkeeping**: Every transaction must balance (debits = credits)
@@ -137,7 +138,7 @@ Key concepts the AI should understand:
 - **Money Utilities**: `/src/classes/value-objects/MoneyUtils.ts`
 - **Currency Factory**: `/src/classes/value-objects/CurrencyFactory.ts`
 - **Persistence Layer**: `/src/persistence/` directory
-- **Adapters**: `/src/persistence/adapters/` (memory, firebase, sql)
+- **Adapters**: `/src/persistence/adapters/` (memory, firebase, mongodb, sql)
 - **Type Definitions**: `/src/types/` directory (TypeScript)
 - **Tests**: `/tests/` directory
 - **Built Output**: `/lib/` directory
@@ -152,8 +153,8 @@ The library includes a flexible persistence layer using adapters:
 |---------|--------|----------|
 | MemoryAdapter | ✅ Ready | Testing, development |
 | FirebaseAdapter | ✅ Ready | Production with Firestore |
+| MongoDBAdapter | ✅ Ready | Production with MongoDB (native queries) |
 | SQLAdapter | ⚠️ Disabled (v2.3.0) | Pending relational schema redesign |
-| MongoDBAdapter | 📋 Planned | Future release |
 
 ### Basic Usage
 ```typescript

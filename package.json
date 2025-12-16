@@ -60,13 +60,26 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.3.1",
     "jest": "^29.7.0",
+    "mongodb": "^6.12.0",
+    "mongodb-memory-server": "^11.0.0",
     "sqlite3": "^5.1.7",
     "ts-jest": "^29.4.1",
     "typescript": "^5.9.2"
   },
   "peerDependencies": {
     "firebase-admin": "^13.6.0",
-    "knex": "^3.0.0"
+    "knex": "^3.0.0",
+    "mongodb": "^6.0.0"
   },
-  "dependencies": {}
+  "peerDependenciesMeta": {
+    "firebase-admin": {
+      "optional": true
+    },
+    "knex": {
+      "optional": true
+    },
+    "mongodb": {
+      "optional": true
+    }
+  }
 }

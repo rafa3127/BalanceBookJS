@@ -13,7 +13,7 @@ BalanceBookJS is a TypeScript/JavaScript library that provides an object-oriente
 * Automatic balance calculation based on debit and credit entries.
 * Enforces double-entry bookkeeping principles in Journal Entries (debits must equal credits).
 * **Persistence Layer**: Plugin-based architecture with adapters for different storage backends.
-* **Built-in Adapters**: MemoryAdapter (testing) and FirebaseAdapter (Firestore).
+* **Built-in Adapters**: MemoryAdapter (testing), FirebaseAdapter (Firestore), and MongoDBAdapter (MongoDB).
 * **Advanced Query Filters**: Flexible `IQueryFilters` interface with operators (`==`, `!=`, `>`, `>=`, `<`, `<=`, `in`, `not-in`, `contains`, `startsWith`, `endsWith`, `includes`), sorting (`$orderBy`), and pagination (`$limit`, `$offset`).
 * **Bulk Operations**: Efficient `deleteMany()` and `updateMany()` for batch data manipulation.
 * **Full TypeScript support** with comprehensive type definitions.
@@ -606,13 +606,56 @@ await account.save(); // Saves to Firestore
 - Avoids potential module resolution issues in complex build environments
 - Simplifies testing with mock Firestore instances
 
+#### MongoDBAdapter
+For MongoDB backends (requires `mongodb` peer dependency):
+
+```typescript
+import { MongoDBAdapter } from 'balance-book-js/persistence';
+
+// Option 1: Config-based initialization (adapter manages connection)
+const adapter = await MongoDBAdapter.connect({
+    uri: 'mongodb://localhost:27017',
+    dbName: 'accounting'
+});
+
+const factory = new Factory(adapter);
+const { Account } = factory.createClasses();
+
+// Works the same as other adapters
+const account = new Account('Cash', 5000, true);
+await account.save(); // Saves to MongoDB
+
+// Don't forget to disconnect when done
+await adapter.disconnect();
+```
+
+```typescript
+// Option 2: Dependency Injection - Pass an already connected Db instance
+import { MongoClient } from 'mongodb';
+
+const client = new MongoClient('mongodb://localhost:27017');
+await client.connect();
+const db = client.db('accounting');
+
+const adapter = new MongoDBAdapter(db);
+const factory = new Factory(adapter);
+// You manage the connection lifecycle
+```
+
+**Why choose MongoDBAdapter?**
+- **Native query support**: All `IQueryFilters` operators work natively (no in-memory filtering)
+- **Native regex**: `startsWith`, `endsWith`, `includes` use MongoDB's `$regex`
+- **Native pagination**: `$skip` and `$limit` handled by MongoDB
+- **No composite indexes**: Unlike Firestore, multi-field queries work without index configuration
+- **Dot notation**: Query nested fields like `balance.amount` natively
+
 #### SQLAdapter (Temporarily Disabled)
 
 > ⚠️ **Note**: The SQLAdapter is temporarily disabled in v2.3.0 pending a redesign with a proper relational schema. The current implementation stores `JournalEntry.entries` as serialized JSON, which prevents efficient queries like "find all transactions involving account X".
 >
 > See [008-sql-adapter-relational-schema.md](docs/ai-context/improvements/008-sql-adapter-relational-schema.md) for the planned relational schema design with separate `journal_entry_lines` table that will enable proper SQL JOINs and indexed queries.
 >
-> **Available adapters**: Use `MemoryAdapter` for testing/development or `FirebaseAdapter` for production with Firestore.
+> **Available adapters**: Use `MemoryAdapter` for testing/development, `FirebaseAdapter` for Firestore, or `MongoDBAdapter` for MongoDB.
 
 ### Instance Methods
 
@@ -747,7 +790,8 @@ const cashAccounts = await Account.findAll({
 - **Bulk operations don't rehydrate**: `updateMany` and `deleteMany` return counts, not updated instances. Objects in memory are not automatically synchronized.
 - **Firebase batch limits**: The FirebaseAdapter automatically handles Firestore's 500 operations per batch limit.
 - **Firestore indexes**: Multi-field queries with `$orderBy` may require composite indexes. Create them in Firebase Console or via `firestore.indexes.json`.
-- **In-memory filtering**: Some operators (`endsWith`, `includes`) are filtered in memory after fetching from Firestore, as they're not natively supported. The adapter uses iterative pagination to guarantee the requested `$limit` is satisfied.
+- **Firestore in-memory filtering**: Some operators (`endsWith`, `includes`) are filtered in memory after fetching from Firestore, as they're not natively supported. The adapter uses iterative pagination to guarantee the requested `$limit` is satisfied.
+- **MongoDB native queries**: Unlike Firestore, MongoDBAdapter executes all filter operators natively in the database with no in-memory filtering overhead.
 
 ## Error Handling
 
@@ -775,6 +819,11 @@ It's recommended to wrap calls to `.commit()` in a `try...catch` block.
 ## Version
 
 Current version: 2.3.0
+
+### What's New in v2.4.0
+- **MongoDBAdapter**: New adapter for MongoDB with native query support for all filter operators
+- **Native Regex Queries**: `startsWith`, `endsWith`, `includes` use MongoDB's `$regex` (no in-memory filtering)
+- **Improved Pagination**: MongoDB's native `skip()` and `limit()` for efficient pagination
 
 ### What's New in v2.3.0
 - **Advanced Query Filters**: New `IQueryFilters` interface with operators (`==`, `!=`, `>`, `>=`, `<`, `<=`, `in`, `not-in`, `contains`, `startsWith`, `endsWith`, `includes`), sorting (`$orderBy`), and pagination (`$limit`, `$offset`)
