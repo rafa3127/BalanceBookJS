@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.0](https://github.com/rafa3127/BalanceBookJS/compare/v2.4.0...v2.5.0) (2025-12-20)
+
+
+### Features
+
+* **config based constructors:** add support to config params for all classes ([5eec80f](https://github.com/rafa3127/BalanceBookJS/commit/5eec80f1f146a8db2ac50ebf442d3a989fdc8dd8))
+
 ## [2.4.0](https://github.com/rafa3127/BalanceBookJS/compare/v2.3.0...v2.4.0) (2025-12-20)
 
 
