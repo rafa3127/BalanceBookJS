@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.0](https://github.com/rafa3127/BalanceBookJS/compare/v2.3.0...v2.4.0) (2025-12-20)
+
+
+### Features
+
+* **MongoDBAdapter:** add mongodb adapter ([ef9fd8a](https://github.com/rafa3127/BalanceBookJS/commit/ef9fd8ad7903c28cc0c379c7fe8fe87b7ae07b82))
+
 ## [2.3.0](https://github.com/rafa3127/BalanceBookJS/compare/v2.2.1...v2.3.0) (2025-12-01)
 
 
