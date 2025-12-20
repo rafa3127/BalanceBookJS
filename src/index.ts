@@ -37,6 +37,17 @@ export type {
   AnyAccount
 } from './types/account.types.ts';
 
+// Config types for v3 constructor API
+export type {
+  AccountConfig,
+  AssetConfig,
+  LiabilityConfig,
+  EquityConfig,
+  IncomeConfig,
+  ExpenseConfig,
+  JournalEntryConfig
+} from './types/config.types.ts';
+
 export type {
   IJournalEntry,
   IJournalEntryLine,

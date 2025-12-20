@@ -2,13 +2,42 @@
 
 import { IJournalEntry, IJournalEntryLine, IEntryDetail } from '../../types/transaction.types.ts';
 import { IAccount } from '../../types/account.types.ts';
+import { JournalEntryConfig } from '../../types/config.types.ts';
 import { IMoney } from '../../types/money.types.ts';
 import { EntryType, ENTRY_TYPES, ERROR_MESSAGES, VALIDATION } from '../../Constants.ts';
 
 import { ISerializable } from '../../types/serialization.ts';
 
 /**
+ * Known keys in JournalEntryConfig that are handled specially by the constructor.
+ * Extra fields (not in this list) are stored directly on the instance.
+ */
+const KNOWN_CONFIG_KEYS = ['description', 'date', 'id', 'reference'];
+
+/**
  * Class representing a journal entry for recording double-entry bookkeeping transactions.
+ *
+ * @example
+ * ```typescript
+ * // Basic usage
+ * const entry = new JournalEntry({ description: 'Monthly rent payment' });
+ *
+ * // With date and reference
+ * const invoice = new JournalEntry({
+ *     description: 'Invoice #1234',
+ *     date: new Date('2024-01-15'),
+ *     reference: 'INV-1234'
+ * });
+ *
+ * // Extended with custom fields
+ * const payroll = new JournalEntry({
+ *     description: 'Payroll January 2024',
+ *     date: new Date(),
+ *     department: 'HR',
+ *     approvedBy: 'John Smith'
+ * });
+ * ```
+ *
  * @implements {IJournalEntry}
  */
 class JournalEntry implements IJournalEntry, ISerializable {
@@ -28,6 +57,11 @@ class JournalEntry implements IJournalEntry, ISerializable {
     public readonly id?: string;
 
     /**
+     * Optional reference number (e.g., invoice number, check number)
+     */
+    public readonly reference?: string;
+
+    /**
      * Array of individual transaction lines
      */
     private entries: IJournalEntryLine[] = [];
@@ -38,19 +72,36 @@ class JournalEntry implements IJournalEntry, ISerializable {
     private committed: boolean = false;
 
     /**
-     * Creates a journal entry for recording transactions.
-     * @param {string} description - Description of the journal entry.
-     * @param {Date} date - Date of the journal entry, defaults to the current date.
-     * @param {string} id - Optional unique identifier for the journal entry.
+     * Index signature to allow extra fields for extensibility
      */
-    constructor(description: string, date: Date = new Date(), id?: string) {
-        if (!description || description.trim().length === 0) {
+    [key: string]: unknown;
+
+    /**
+     * Creates a journal entry for recording transactions.
+     * @param {JournalEntryConfig} config - Configuration object for the journal entry.
+     * @throws {Error} If description is empty
+     *
+     * @example
+     * ```typescript
+     * new JournalEntry({ description: 'Sale of goods', date: new Date() })
+     * ```
+     */
+    constructor(config: JournalEntryConfig) {
+        if (!config.description || config.description.trim().length === 0) {
             throw new Error('Journal entry description cannot be empty');
         }
 
-        this.description = description;
-        this.date = date;
-        this.id = id;
+        this.description = config.description;
+        this.date = config.date ?? new Date();
+        this.id = config.id;
+        this.reference = config.reference;
+
+        // Store extra fields (excluding known config keys)
+        for (const [key, value] of Object.entries(config)) {
+            if (!KNOWN_CONFIG_KEYS.includes(key)) {
+                this[key] = value;
+            }
+        }
     }
 
     /**
@@ -218,15 +269,17 @@ class JournalEntry implements IJournalEntry, ISerializable {
     }
 
     /**
-     * Serialize the journal entry for persistence
+     * Serialize the journal entry for persistence.
+     * Includes all extra fields stored on the instance.
      */
-    public serialize(): any {
-        return {
+    public serialize(): Record<string, unknown> {
+        const base: Record<string, unknown> = {
             description: this.description,
             date: this.date,
             committed: this.committed,
+            reference: this.reference,
             entries: this.entries.map(entry => {
-                const accountId = (entry.account as any).id;
+                const accountId = (entry.account as unknown as Record<string, unknown>).id;
                 if (!accountId) {
                     throw new Error(`Cannot serialize JournalEntry: Referenced Account '${entry.account.name}' must be saved first`);
                 }
@@ -237,51 +290,75 @@ class JournalEntry implements IJournalEntry, ISerializable {
                 };
             })
         };
+
+        // Include extra fields (not in known keys and not private/internal)
+        const internalKeys = ['description', 'date', 'id', 'reference', 'entries', 'committed'];
+        for (const key of Object.keys(this)) {
+            if (!internalKeys.includes(key) && !key.startsWith('_')) {
+                base[key] = this[key];
+            }
+        }
+
+        return base;
     }
 
     /**
      * Static reference to the Account model for hydration.
      * Injected by the Factory.
      */
-    public static AccountModel: any = null;
+    public static AccountModel: unknown = null;
 
     /**
      * Create a JournalEntry instance from serialized data
+     * @param {Record<string, unknown>} data - The serialized journal entry data
+     * @returns {Promise<JournalEntry>} A new JournalEntry instance
      */
-    public static async fromData(data: any): Promise<JournalEntry> {
-        const entry = new JournalEntry(
-            data.description,
-            new Date(data.date)
-        );
+    public static async fromData(data: Record<string, unknown>): Promise<JournalEntry> {
+        // Build config from data, preserving extra fields
+        const config: JournalEntryConfig = {
+            description: data.description as string,
+            date: new Date(data.date as string | number | Date),
+            reference: data.reference as string | undefined
+        };
 
-        // Restore committed state if needed (though usually we shouldn't modify private state directly)
-        // Ideally, we replay the commit, but for hydration we might need to bypass checks
+        // Copy extra fields to config
+        const knownDataKeys = ['description', 'date', 'id', 'reference', 'entries', 'committed'];
+        for (const [key, value] of Object.entries(data)) {
+            if (!knownDataKeys.includes(key)) {
+                config[key] = value;
+            }
+        }
+
+        const entry = new JournalEntry(config);
+
+        // Restore committed state if needed
         if (data.committed) {
-            (entry as any).committed = true;
+            (entry as Record<string, unknown>).committed = true;
         }
 
         if (data.entries && Array.isArray(data.entries)) {
-            const AccountModel = (this as any).AccountModel || JournalEntry.AccountModel;
+            const AccountModel = (this as unknown as Record<string, unknown>).AccountModel || JournalEntry.AccountModel;
             if (!AccountModel) {
                 console.warn('AccountModel not injected into JournalEntry. Cannot hydrate entries.');
                 return entry;
             }
 
-            for (const entryData of data.entries) {
-                const account = await AccountModel.findById(entryData.accountId);
+            for (const entryData of data.entries as Record<string, unknown>[]) {
+                const account = await (AccountModel as { findById: (id: string) => Promise<IAccount | null> }).findById(entryData.accountId as string);
                 if (account) {
-                    // We use addEntry which validates everything again
-                    // This is safer than direct array manipulation
                     try {
                         // If already committed, we might need to bypass addEntry checks
                         if (entry.isCommitted()) {
-                            (entry as any).entries.push({
-                                account: account,
-                                amount: entryData.amount,
-                                type: entryData.type
-                            });
+                            (entry as Record<string, unknown>).entries = [
+                                ...(entry as Record<string, unknown>).entries as IJournalEntryLine[],
+                                {
+                                    account: account,
+                                    amount: entryData.amount as number,
+                                    type: entryData.type as EntryType
+                                }
+                            ];
                         } else {
-                            entry.addEntry(account, entryData.amount, entryData.type);
+                            entry.addEntry(account, entryData.amount as number, entryData.type as EntryType);
                         }
                     } catch (e) {
                         console.warn(`Failed to restore entry line: ${e}`);

@@ -109,7 +109,7 @@ docs/
 ## 🔄 Data Flow
 
 ### Transaction Lifecycle
-1. **Creation**: `new JournalEntry(description, date)`
+1. **Creation**: `new JournalEntry({ description, date })`
 2. **Building**: `addEntry(account, amount, type)` - multiple times
 3. **Validation**: Internal check that debits = credits
 4. **Commit**: `commit()` - applies to all accounts

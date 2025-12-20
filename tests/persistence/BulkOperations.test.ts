@@ -16,9 +16,9 @@ describe('Bulk Operations', () => {
 
     test('deleteMany should remove matching documents', async () => {
         // Create 3 accounts
-        const acc1 = new PersistableAccount('Acc1', 100);
-        const acc2 = new PersistableAccount('Acc2', 200);
-        const acc3 = new PersistableAccount('Acc3', 300);
+        const acc1 = new PersistableAccount({ name: 'Acc1', balance: 100, isDebitPositive: true });
+        const acc2 = new PersistableAccount({ name: 'Acc2', balance: 200, isDebitPositive: true });
+        const acc3 = new PersistableAccount({ name: 'Acc3', balance: 300, isDebitPositive: true });
 
         await acc1.save();
         await acc2.save();
@@ -36,9 +36,9 @@ describe('Bulk Operations', () => {
 
     test('updateMany should update matching documents', async () => {
         // Create 3 accounts
-        const acc1 = new PersistableAccount('Acc1', 100);
-        const acc2 = new PersistableAccount('Acc2', 100);
-        const acc3 = new PersistableAccount('Acc3', 300);
+        const acc1 = new PersistableAccount({ name: 'Acc1', balance: 100, isDebitPositive: true });
+        const acc2 = new PersistableAccount({ name: 'Acc2', balance: 100, isDebitPositive: true });
+        const acc3 = new PersistableAccount({ name: 'Acc3', balance: 300, isDebitPositive: true });
 
         await acc1.save();
         await acc2.save();
