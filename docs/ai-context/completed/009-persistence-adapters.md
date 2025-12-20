@@ -120,9 +120,24 @@ This improvement builds upon the core persistence layer established in Improveme
    - Video guides
    - Code examples
 
-### Phase 4: Additional Adapters (Future)
+### Phase 4: MongoDB Adapter (Completed v2.4.0)
+#### Objectives
+- Create MongoDB adapter with native query support
+- Leverage MongoDB's native operators (no in-memory filtering)
+- Support both config-based and dependency injection patterns
+
+#### Implementation
+- **MongoDBAdapter**: Full implementation with native query translation
+- **Native regex**: `startsWith`, `endsWith`, `includes` use `$regex`
+- **Native pagination**: MongoDB's `skip()` and `limit()`
+- **No composite indexes**: Unlike Firestore, multi-field queries work without index configuration
+- **Dot notation**: Native support for nested field queries like `balance.amount`
+
+#### Peer Dependencies
+- `mongodb: ^6.0.0` (optional, only needed if using MongoDBAdapter)
+
+### Phase 5: Additional Adapters (Future)
 #### Potential Adapters
-- **MongoDB Adapter**: NoSQL support
 - **Redis Adapter**: Caching layer
 - **REST API Adapter**: Remote storage
 - **GraphQL Adapter**: GraphQL backends
