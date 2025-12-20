@@ -8,16 +8,19 @@ import Income from '../classes/accounts/Income.ts';
 import Expense from '../classes/accounts/Expense.ts';
 import JournalEntry from '../classes/transactions/JournalEntry.ts';
 import { Money } from '../classes/value-objects/Money.ts';
+import type { AccountConfig, AssetConfig, LiabilityConfig, EquityConfig, IncomeConfig, ExpenseConfig } from '../types/config.types.ts';
+
+// Type for account class constructors with config-based API
+type AccountClassConstructor = new (config: AccountConfig | AssetConfig | LiabilityConfig | EquityConfig | IncomeConfig | ExpenseConfig) => Account;
 
 // Map of stored type to account class
-// Using 'any' for constructor type since subclasses have different signatures
-const accountTypeMap: Record<string, new (name: string, initialBalance?: number | Money, defaultCurrency?: string) => Account> = {
-    'ASSET': Asset,
-    'LIABILITY': Liability,
-    'EQUITY': Equity,
-    'INCOME': Income,
-    'EXPENSE': Expense,
-    'ACCOUNT': Account as any,
+const accountTypeMap: Record<string, AccountClassConstructor> = {
+    'ASSET': Asset as unknown as AccountClassConstructor,
+    'LIABILITY': Liability as unknown as AccountClassConstructor,
+    'EQUITY': Equity as unknown as AccountClassConstructor,
+    'INCOME': Income as unknown as AccountClassConstructor,
+    'EXPENSE': Expense as unknown as AccountClassConstructor,
+    'ACCOUNT': Account as unknown as AccountClassConstructor,
 };
 
 /**
@@ -45,48 +48,49 @@ export class Factory {
         };
 
         // Override Account.fromData to return the correct subclass based on stored type
-        (classes.Account as any).fromData = function(data: any) {
-            const storedType = data.type || 'ACCOUNT';
+        (classes.Account as unknown as Record<string, unknown>).fromData = function(data: Record<string, unknown>) {
+            const storedType = (data.type as string) || 'ACCOUNT';
             const AccountClass = accountTypeMap[storedType] || Account;
 
-            let initialBalance: number | Money = 0;
+            let balance: number | Money = 0;
             if (data.balance) {
+                const balanceData = data.balance as Record<string, unknown>;
                 if (data.initialMode === 'number') {
-                    initialBalance = data.balance.amount;
+                    balance = balanceData.amount as number;
                 } else {
-                    initialBalance = new Money(
-                        data.balance.amount,
-                        data.balance.currency || data.currency
+                    balance = new Money(
+                        balanceData.amount as number,
+                        (balanceData.currency as string) || (data.currency as string)
                     );
                 }
             }
 
-            const currency = data.currency || 'CURR';
+            const currency = (data.currency as string) || 'CURR';
 
-            // Account base class has different constructor signature than subclasses
-            // Account: (name, balance, isDebitPositive, currency)
-            // Subclasses: (name, balance, currency)
-            let account;
-            if (storedType === 'ACCOUNT') {
-                account = new (AccountClass as any)(
-                    data.name,
-                    initialBalance,
-                    data.isDebitPositive,
-                    currency
-                );
-            } else {
-                account = new (AccountClass as any)(
-                    data.name,
-                    initialBalance,
-                    currency
-                );
+            // Build config from data, preserving extra fields
+            const config: AccountConfig = {
+                name: data.name as string,
+                balance,
+                isDebitPositive: data.isDebitPositive as boolean,
+                currency
+            };
+
+            // Copy extra fields to config
+            const knownDataKeys = ['name', 'balance', 'isDebitPositive', 'currency', 'type', 'initialMode', 'id'];
+            for (const [key, value] of Object.entries(data)) {
+                if (!knownDataKeys.includes(key)) {
+                    config[key] = value;
+                }
             }
+
+            // All account types now use config-based constructors
+            const account = new AccountClass(config);
 
             return account;
         };
 
         // Inject Account model into JournalEntry for hydration
-        classes.JournalEntry.AccountModel = classes.Account;
+        (classes.JournalEntry as unknown as Record<string, unknown>).AccountModel = classes.Account;
 
         return classes;
     }

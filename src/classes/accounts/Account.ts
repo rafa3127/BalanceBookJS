@@ -1,11 +1,46 @@
 import { ISerializable } from '../../types/serialization.ts';
 import { IAccountInternal } from '../../types/account.types.ts';
+import { AccountConfig } from '../../types/config.types.ts';
 import { Money } from '../value-objects/Money.ts';
 import { ERROR_MESSAGES } from '../../Constants.ts';
 
 /**
+ * Known keys in AccountConfig that are handled specially by the constructor.
+ * Extra fields (not in this list) are stored directly on the instance.
+ */
+const KNOWN_CONFIG_KEYS = ['name', 'balance', 'isDebitPositive', 'currency'];
+
+/**
  * Class representing a generic account with Money integration.
  * Implements transparent mode - returns the same type as initialized.
+ *
+ * @example
+ * ```typescript
+ * // Basic usage with config object
+ * const account = new Account({
+ *     name: 'Cash',
+ *     balance: 1000,
+ *     isDebitPositive: true,
+ *     currency: 'USD'
+ * });
+ *
+ * // With Money object
+ * const account = new Account({
+ *     name: 'Cash',
+ *     balance: new Money(1000, 'USD'),
+ *     isDebitPositive: true
+ * });
+ *
+ * // Extended with custom fields
+ * const account = new Account({
+ *     name: 'Cash',
+ *     balance: 1000,
+ *     isDebitPositive: true,
+ *     department: 'Sales',  // custom field
+ *     category: 'Operating' // custom field
+ * });
+ * ```
+ *
  * @implements {IAccountInternal}
  */
 class Account implements IAccountInternal, ISerializable {
@@ -30,42 +65,57 @@ class Account implements IAccountInternal, ISerializable {
     readonly isDebitPositive: boolean;
 
     /**
-     * Create an account.
-     * @param {string} name - The name of the account.
-     * @param {number | Money} initialBalance - The initial balance of the account.
-     * @param {boolean} isDebitPositive - Determines if debits increase or decrease the balance.
-     * @param {string} defaultCurrency - Default currency for number mode (default: 'CURR')
-     * @throws {Error} If initialBalance is negative
+     * Index signature to allow extra fields for extensibility
      */
-    constructor(
-        name: string,
-        initialBalance: number | Money = 0,
-        isDebitPositive: boolean,
-        defaultCurrency: string = 'CURR'
-    ) {
+    [key: string]: unknown;
+
+    /**
+     * Create an account.
+     * @param {AccountConfig} config - Configuration object for the account.
+     * @throws {Error} If name is empty
+     * @throws {Error} If balance is negative
+     *
+     * @example
+     * ```typescript
+     * new Account({ name: 'Cash', balance: 1000, isDebitPositive: true })
+     * ```
+     */
+    constructor(config: AccountConfig) {
         // Validate name
-        if (!name || name.trim().length === 0) {
+        if (!config.name || config.name.trim().length === 0) {
             throw new Error('Account name cannot be empty');
         }
 
-        this.name = name;
-        this.isDebitPositive = isDebitPositive;
+        this.name = config.name;
+        this.isDebitPositive = config.isDebitPositive;
+
+        // Setup balance
+        const balance = config.balance ?? 0;
+        const currency = config.currency ?? 'CURR';
 
         // Detect initialization mode and setup balance
-        if (Money.isMoney(initialBalance)) {
+        if (Money.isMoney(balance)) {
             // Money mode
-            if (initialBalance.isNegative()) {
+            if (balance.isNegative()) {
                 throw new Error(ERROR_MESSAGES.NEGATIVE_AMOUNT);
             }
             this.initialMode = 'money';
-            this.balanceMoney = initialBalance;
+            this.balanceMoney = balance;
         } else {
             // Number mode
-            if (initialBalance < 0) {
+            const numericBalance = balance as number;
+            if (numericBalance < 0) {
                 throw new Error(ERROR_MESSAGES.NEGATIVE_AMOUNT);
             }
             this.initialMode = 'number';
-            this.balanceMoney = new Money(initialBalance, defaultCurrency);
+            this.balanceMoney = new Money(numericBalance, currency);
+        }
+
+        // Store extra fields (excluding known config keys)
+        for (const [key, value] of Object.entries(config)) {
+            if (!KNOWN_CONFIG_KEYS.includes(key)) {
+                this[key] = value;
+            }
         }
     }
 
@@ -187,47 +237,69 @@ class Account implements IAccountInternal, ISerializable {
     }
 
     /**
-     * Serialize the account for persistence
+     * Serialize the account for persistence.
+     * Includes all extra fields stored on the instance.
      */
-    public serialize(): any {
-        return {
+    public serialize(): Record<string, unknown> {
+        const base: Record<string, unknown> = {
             name: this.name,
-            type: (this as any).type || 'ACCOUNT',
+            type: (this as Record<string, unknown>).type || 'ACCOUNT',
             balance: this.balanceMoney.toJSON(),
             isDebitPositive: this.isDebitPositive,
             initialMode: this.initialMode,
             currency: this.balanceMoney.currency
         };
+
+        // Include extra fields (not in known keys and not private/internal)
+        const internalKeys = ['name', 'balanceMoney', 'initialMode', 'isDebitPositive', 'type'];
+        for (const key of Object.keys(this)) {
+            if (!internalKeys.includes(key) && !key.startsWith('_')) {
+                base[key] = this[key];
+            }
+        }
+
+        return base;
     }
 
     /**
-     * Create an Account instance from serialized data
+     * Create an Account instance from serialized data.
+     * @param {Record<string, unknown>} data - The serialized account data
+     * @returns {Account} A new Account instance
      */
-    public static fromData(data: any): Account {
-        let initialBalance: number | Money = 0;
+    public static fromData(data: Record<string, unknown>): Account {
+        let balance: number | Money = 0;
 
         if (data.balance) {
+            const balanceData = data.balance as Record<string, unknown>;
             if (data.initialMode === 'number') {
                 // If originally created with number, restore as number
-                initialBalance = data.balance.amount;
+                balance = balanceData.amount as number;
             } else {
                 // Reconstruct Money object
-                initialBalance = new Money(
-                    data.balance.amount,
-                    data.balance.currency || data.currency
+                balance = new Money(
+                    balanceData.amount as number,
+                    (balanceData.currency as string) || (data.currency as string)
                 );
             }
         }
 
-        // Use the public constructor to ensure all invariants are respected
-        const account = new Account(
-            data.name,
-            initialBalance,
-            data.isDebitPositive,
-            data.currency || 'CURR'
-        );
+        // Build config from data, preserving extra fields
+        const config: AccountConfig = {
+            name: data.name as string,
+            balance,
+            isDebitPositive: data.isDebitPositive as boolean,
+            currency: (data.currency as string) || 'CURR'
+        };
 
-        return account;
+        // Copy extra fields to config
+        const knownDataKeys = ['name', 'balance', 'isDebitPositive', 'currency', 'type', 'initialMode', 'id'];
+        for (const [key, value] of Object.entries(data)) {
+            if (!knownDataKeys.includes(key)) {
+                config[key] = value;
+            }
+        }
+
+        return new Account(config);
     }
 }
 
